@@ -1,18 +1,31 @@
-const mongoose = require('mongoose');
-
-const productSchema = new mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
-    title: { type: String, required: true, trim: true },
-    body: { type: String, required: true, trim: true },
-    price: { type: Number, required: true },
-    tag: String,
-    image : { 
-      data : Buffer,
-      contentsType : String
-    },
-    quantity: { type: Number,required: true },
-    user_id : { type: Number, ref: user },
-    broadcast_id :{ type: Number, ref: broadcast }
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class product extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+      product.hasMany(models.order)
+    }
+  };
+  product.init({
+    title: DataTypes.STRING,
+    body: DataTypes.STRING,
+    price: DataTypes.INTEGER,
+    tag: DataTypes.STRING,
+    image: DataTypes.STRING,
+    image2: DataTypes.STRING,
+    image3: DataTypes.STRING,
+    quantity: DataTypes.INTEGER
+  }, {
+    sequelize,
+    modelName: 'product',
   });
-  
-  module.exports = mongoose.model('product', productSchema);
+  return product;
+};
