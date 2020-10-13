@@ -3,7 +3,7 @@ const LocalStrategy = require('passport-local').Strategy
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 const sequelize = require("sequelize");
 const app = require('../App');
-const { user } = require(`../models`)
+const { user } = require(`../models/`)
 
 
 module.exports = {
