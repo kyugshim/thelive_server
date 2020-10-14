@@ -11,12 +11,12 @@ module.exports = {
                 full_name: fullname,
                 nickname: nickname,
                 phone: phone,
-                address: address
+                address: address,
+                profileImage: profileImage
             }
         })
             .then(async ([user, created]) => {
                 if (!created) {
-                    console.log(req.session.passport.user)
                     return res.status(409).send("이미 존재하는 email입니다.");
                 }
                 const data = await user.get({ plain: true });
@@ -72,7 +72,7 @@ module.exports = {
                 res.status(400)
             })
     },
-    signOutController: (req, res) => {
+    signOut: (req, res) => {
         const session_userid = req.session.passport.user;
         if (session_userid) {
             req.session.destroy(err => {

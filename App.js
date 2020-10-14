@@ -4,16 +4,17 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const passport = require('passport');
+
 const cors = require('cors');
+
 const morgan = require('morgan');
-const fs = require('fs');
-const path = require('path');
 const models = require('./models/index')
 const http = require('http');
 const utils = require('./utils');
 const app = express();
 const port = 5000;
-
+const auth = require('./controller/authentication')
+const controller = require('./controller/index')
 const server = http.createServer(app);
 
 const io = require('socket.io').listen(server)
@@ -36,16 +37,37 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
 
+//passport
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(passport.initialize())
 app.use(passport.session());
 
+/**********  API ************/
+
+app.post('/signin', auth.signin)
+
+//PASSPORT - OAUTH2.0 - GOOGLE
+app.get('/auth/google', (req, res, next) => auth.oAuthGoogle(req, res, next))
+app.get('/auth/google/redirect', auth.googleRedirect)
+
+//PASSPORT - OAUTH2.0 - facebook
+app.get('/auth/facebook',(req, res, next) => auth.oAuthfacebook(req, res, next))
+app.get('auth/facebook/callback', auth.facebookCallback)
+
+// get 요청에 대한 응답 (API)
+app.post("/signup", controller.signUp);
+app.post("/signout", controller.signOut);
+app.post("/signeditnickname", controller.signEditNickname);
+app.post("/signeditpassword", controller.signEditPassword);
 
 
 
+
+
+app.use(bodyParser.json());
 app.set('socketio', io);
 app.set('server', server);
-
+app.use(express.static(`${__dirname}/public`));
 // app.set('port', port);
 app.listen(app.get('port'), () => {
     console.log(`app is the-live-server in PORT ${app.get('port')}`);
