@@ -62,10 +62,9 @@ const session = require("express-session")({
 const port = 5000;
 const auth = require('./controller/authentication')
 const controller = require('./controller/index')
-const server = http.createServer(app);
 const multer = require("multer");
 const { pathToFileURL } = require('url');
-const storage = multer.diskStorgae({
+const storage = multer.diskStorage({
   destination: './public/uploads/',
   filename: function (req, file, cb) {
     cb(null, file.filename + '-' + Date.now() +
@@ -73,7 +72,7 @@ const storage = multer.diskStorgae({
   }
 });
 
-// const upload = multer({ dest: 'uploads/' })
+const upload = multer({ dest: 'uploads/' })
 
 
 models.sequelize.sync()
