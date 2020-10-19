@@ -4,7 +4,8 @@
   "description": "the-live-server-mongoose",
   "main": "index.js",
   "scripts": {
-    "test": "start"
+    "test": "start",
+    "start": "nodemon App.js"
   },
   "repository": {
     "type": "git",

@@ -62,11 +62,23 @@ const session = require("express-session")({
 const port = 5000;
 const auth = require('./controller/authentication')
 const controller = require('./controller/index')
+const server = http.createServer(app);
+const multer = require("multer");
+const { pathToFileURL } = require('url');
+const storage = multer.diskStorgae({
+  destination: './public/uploads/',
+  filename: function (req, file, cb) {
+    cb(null, file.filename + '-' + Date.now() +
+      path.extname(file.originalname));
+  }
+});
+
+// const upload = multer({ dest: 'uploads/' })
 
 
 models.sequelize.sync()
-    .then(() => console.log('동기화 성공'))
-    .catch(e => console.log(e));
+  .then(() => console.log('동기화 성공'))
+  .catch(e => console.log(e));
 
     require(`./controller/socketIO`)(io);
 
@@ -82,10 +94,21 @@ io.use(passportSocketIo.authorize({
   fail: onAuthorizeFail
 })); 
 
+app.use(
+  session
+);
 
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
+
+/********** multer ************/
+//user avatar
+app.post('/profile', upload.single('avatar'), function (req, res, next) {
+  // req.file is the `avatar` file
+  // req.body will hold the text fields, if there were any
+})
+
 
 //passport
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -101,7 +124,7 @@ app.get('/auth/google', (req, res, next) => auth.oAuthGoogle(req, res, next))
 app.get('/auth/google/redirect', auth.googleRedirect)
 
 //PASSPORT - OAUTH2.0 - facebook
-app.get('/auth/facebook',(req, res, next) => auth.oAuthfacebook(req, res, next))
+app.get('/auth/facebook', (req, res, next) => auth.oAuthfacebook(req, res, next))
 app.get('auth/facebook/callback', auth.facebookCallback)
 
 // get 요청에 대한 응답 (API)
