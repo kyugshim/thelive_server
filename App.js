@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 
-const cors = require('cors');
+// const cors = require('cors');
 
 const morgan = require('morgan');
 const models = require('./models/index')
@@ -18,15 +18,7 @@ const controller = require('./controller/index')
 const server = http.createServer(app);
 const multer = require("multer");
 const { pathToFileURL } = require('url');
-const storage = multer.diskStorgae({
-  destination: './public/uploads/',
-  filename: function (req, file, cb) {
-    cb(null, file.filename + '-' + Date.now() +
-      path.extname(file.originalname));
-  }
-});
 
-// const upload = multer({ dest: 'uploads/' })
 
 const io = require('socket.io').listen(server)
 require(`./controller/socketIO`)(io);
@@ -53,7 +45,9 @@ app.use(express.json());
 app.post('/profile', upload.single('avatar'), function (req, res, next) {
   // req.file is the `avatar` file
   // req.body will hold the text fields, if there were any
-})
+
+  console.log(req, res);
+});
 
 
 //passport
