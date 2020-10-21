@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       product.hasMany(models.order)
-      product.belongsToMany(models.user,{
+      product.belongsToMany(models.user, {
         through: 'whishlist'
       })
     }
@@ -30,5 +30,6 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'product',
   });
+
   return product;
 };

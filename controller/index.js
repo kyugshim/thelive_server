@@ -2,7 +2,7 @@ const { user } = require('../models');
 const { order } = require('../models');
 const { product } = require('../models');
 const { broadcast } = require('../models');
-
+const { session } = require('../models'); // DB상에 존재하는 sessions 테이블을 sequelize에서 사용하기 위해, session 모델을 생성했습니다.
 const { follow } = require('../models');
 const { wishlist } = require('../models');
 
@@ -20,6 +20,7 @@ module.exports = {
                 nickname: nickname,
                 phone: phone,
                 address: address,
+                addressDetail: addressDetail,
                 profileImage: profileImage
             }
         })
@@ -82,52 +83,138 @@ module.exports = {
             })
     },
     signOut: (req, res) => {
-        const session_userid = req.session.passport.user;
-        if (session_userid) {
-            req.session.destroy(err => {
-                if (err) {
-                    console.log(err);
-                    res.status(400).send("로그아웃 실패!")
-                } else {
-                    res.status(200).send("로그아웃 성공")
-                }
-            });
-        }
+        const userSession = req.session;
+        console.log(req.session)
+        session.destroy({
+            where: {
+                data: JSON.stringify(userSession)
+            }
+        }).
+            then(result => {
+                userSession.destroy();
+                res.status(200).send("정상적으로 로그아웃했습니다.")
+            })
+            .catch(err => {
+                console.log(err)
+                res.status(400).end("로그아웃 중 에러가 발생했습니다.")
+            })
+
     },
 
     /**********   CREATE   ************/
-    userCreate: (req, res) => {
+    createUser: (req, res) => {
         user.create({})
-    },
-    productCreate: (req, res) => {
-        product.create({})
+    }, // Signup으로 대체 가능
+
+    createProduct: (req, res) => {
+        let userId = req.session.passport.user
+        let { title, body, price, tags, image, image2, image3, quantity } = req.body
+
+        product
+            .create({
+                title: title,
+                body: body,
+                price: price,
+                tag: JSON.stringify(tags),
+                image: image,
+                image2: image2,
+                image3: image3,
+                quantity: quantity,
+                userId: userId,
+                broadcast: null
+            })
+            .then(data => res.status(200).json(data))
+            .catch(err => {
+                console.log(err)
+                res.status(400).send(err)
+            })
     },
 
-    orderCreate: (req, res) => {
+    createWishList: (req, res) => {
+        let userId = req.session.passport.user
+        let { productId } = req.body
+
+        wishlist
+            .create({ userId: userId, productId: productId })
+            .then(data => res.status(200).json(data))
+    },
+
+    createOrder: (req, res) => {
         order.create({})
     },
 
-    broadcastCreate: (req, res) => {
-        broadcast.create({})
-    }
+    createBroadcast: (req, res) => {
+    }, // socket.io로 해결
 
     /**********   READ  ************/
 
+    getUser: (req, res) => {
+        user.create({})
+    }, // userInfo로 대체 가능
 
+    getProduct: (req, res) => {
+        product.create({})
+    },
 
+    getOrder: (req, res) => {
+        order.create({})
+    },
 
-
+    getBroadcast: (req, res) => {
+        broadcast.create({})
+    },
 
     /**********   UPDATE  ************/
 
+    updateUser: (req, res) => {
+        user.create({})
+    },
+    updateProduct: (req, res) => {
+        product.create({})
+    },
 
+    updateOrder: (req, res) => {
+        order.create({})
+    },
 
-
-
+    updateBroadcast: (req, res) => {
+        broadcast.create({})
+    },
 
     /**********   DELETE   ************/
 
+    deleteUser: (req, res) => {
+        user.create({})
+    },
+    deleteProduct: (req, res) => {
+        product.create({})
+    },
 
+    deleteOrder: (req, res) => {
+        order.create({})
+    },
+
+    deleteWishList: (req, res) => {
+        let userId = req.session.passport.user
+        let { productId } = req.body
+
+        wishlist
+            .destroy({
+                where: {
+                    userId: userId,
+                    productId: productId
+                }
+            })
+            .then(data => res.status(200).json(data))
+            .catch(err => {
+                console.log(err)
+                res.status(400).send(err)
+            })
+    },
+
+    deleteBroadcast: (req, res) => {
+        broadcast.create({})
+    },
 
 
 
