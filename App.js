@@ -1,5 +1,5 @@
-const  NodeMediaServer  = require('node-media-server');
-const nodeMediaServerConfig  = require('./config/nodeMediaServer')
+const NodeMediaServer = require('node-media-server');
+const nodeMediaServerConfig = require('./config/nodeMediaServer')
 const { user } = require('./models')
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -12,22 +12,22 @@ const http = require('http');
 const utils = require('./utils');
 
 const app = require('express')()
-const server  = require("http").createServer(app)
+const server = require("http").createServer(app)
 
 
 const MYSQLStore = require('express-mysql-session');
 const io = require("socket.io")(server)
 require(`./controller/socketIO`)(io);
 
- // find 
-const   passportSocketIo = require("passport.socketio");
+// find 
+const passportSocketIo = require("passport.socketio");
 
 const options = {
   host: 'localhost',
-  port: '3000',
-  user: 'test',
-  password:'', // database password 인가???
-  database: 'theLive' 
+  port: '3306',
+  user: 'root',
+  password: '1', // database password 인가???
+  database: 'theLive'
 }
 
 const sessionStore = new MYSQLStore(options)
@@ -37,27 +37,25 @@ const session = require("express-session")({
   key: 'express.sid',
   secret: "4B",
   store: sessionStore,
-  success:  onAuthorizeSuccess(),
-  fail:     onAuthorizeFail(),
   resave: true,
   saveUninitialized: true
 })
 
-      function onAuthorizeSuccess(data, accept){
-        console.log('successful connection to socket.io');
-       
-        // The accept-callback still allows us to decide whether to
-        // accept the connection or not.
-       
-      }
+function onAuthorizeSuccess(data, accept) {
+  console.log('successful connection to socket.io');
 
-      function onAuthorizeFail(data, message, error, accept){
-        if(error)
-          throw new Error(message);
-        console.log('failed connection to socket.io:', message);
-       
-        // We use this callback to log all of our failed connections.
-      }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+  // The accept-callback still allows us to decide whether to
+  // accept the connection or not.
+
+}
+
+function onAuthorizeFail(data, message, error, accept) {
+  if (error)
+    throw new Error(message);
+  console.log('failed connection to socket.io:', message);
+
+  // We use this callback to log all of our failed connections.
+}
 
 const port = 5000;
 const auth = require('./controller/authentication')
@@ -79,7 +77,7 @@ models.sequelize.sync()
   .then(() => console.log('동기화 성공'))
   .catch(e => console.log(e));
 
-    require(`./controller/socketIO`)(io);
+require(`./controller/socketIO`)(io);
 
 
 app.use(session);
@@ -91,7 +89,7 @@ io.use(passportSocketIo.authorize({
   store: sessionStore,
   success: onAuthorizeFail,
   fail: onAuthorizeFail
-})); 
+}));
 
 app.use(
   session
@@ -127,6 +125,7 @@ app.get('/auth/facebook', (req, res, next) => auth.oAuthfacebook(req, res, next)
 app.get('auth/facebook/callback', auth.facebookCallback)
 
 // get 요청에 대한 응답 (API)
+app.get("/userInfo", controller.userInfo);
 app.post("/signup", controller.signUp);
 app.post("/signout", controller.signOut);
 app.post("/signeditnickname", controller.signEditNickname);
@@ -146,9 +145,9 @@ app.set('port', port);
 // });
 server.listen(5000, (err) => {
   if (err) {
-      console.log(err)
+    console.log(err)
   } else {
-      console.log('listening on port 5000')
+    console.log('listening on port 5000')
   }
 })
 

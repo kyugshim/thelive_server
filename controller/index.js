@@ -8,7 +8,7 @@ const { wishlist } = require('../models');
 
 module.exports = {
     signUp: (req, res) => {
-        const { email, password, fullname, nickname, phone, address, addressDetail ,profileImage } = req.body;
+        const { email, password, fullname, nickname, phone, address, addressDetail, profileImage } = req.body;
 
         user.findOrCreate({
             where: {
@@ -32,28 +32,29 @@ module.exports = {
                 res.status(201).json(data);
             });
     },
-    // mypage: (req, res) => {
-    //     const session_userid = req.session.passport.user;
-    //     if (session_userid) {
-    //         user.findOne({
-    //             where: {
-    //                 id: session_userid,
-    //             },
-    //         })
-    //             .then((data) => {
-    //                 if (data) {
-    //                     return res.status(200).json(data);
-    //                 }
-    //                 res.sendStatus(204);
-    //             })
-    //             .catch((err) => {
-    //                 console.log(err);
-    //                 res.sendStatus(500);
-    //             });
-    //     } else {
-    //         res.status(401).send("세션을 찾지 못했습니다.")
-    //     }
-    // },
+    userInfo: (req, res) => {
+        console.log('userinfo api work', req.session)
+        const session_userid = req.session.passport.user;
+        if (session_userid) {
+            user.findOne({
+                where: {
+                    id: session_userid,
+                },
+            })
+                .then((data) => {
+                    if (data) {
+                        return res.status(200).json(data);
+                    }
+                    res.sendStatus(204);
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.sendStatus(500);
+                });
+        } else {
+            res.status(401).send("세션을 찾지 못했습니다.")
+        }
+    },
     signEditNickname: (req, res) => {
         const { nickname } = req.body;
         const session_userid = req.session.passport.user
@@ -96,40 +97,40 @@ module.exports = {
 
     /**********   CREATE   ************/
     userCreate: (req, res) => {
-        user.create({}) 
+        user.create({})
     },
     productCreate: (req, res) => {
-        product.create({}) 
+        product.create({})
     },
 
     orderCreate: (req, res) => {
-        order.create({}) 
+        order.create({})
     },
 
     broadcastCreate: (req, res) => {
-        broadcast.create({}) 
+        broadcast.create({})
     }
 
     /**********   READ  ************/
-    
+
 
 
 
 
 
     /**********   UPDATE  ************/
-    
+
 
 
 
 
 
     /**********   DELETE   ************/
-    
 
 
-    
 
-    
+
+
+
 
 }
