@@ -1,4 +1,5 @@
 'use strict';
+const crypto = require('crypto')
 const {
   Model
 } = require('sequelize');
@@ -15,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "follower",
         through: "follow"
       })
-      user.belongsToMany(models.product,{
+      user.belongsToMany(models.product, {
         through: "wishlist"
       })
       user.hasMany(models.product);
@@ -23,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   user.init({
-    email: { 
+    email: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false
@@ -32,15 +33,15 @@ module.exports = (sequelize, DataTypes) => {
     fullname: DataTypes.STRING,
     nickname: DataTypes.STRING,
     address: DataTypes.STRING,
-    addressDetail : DataTypes.STRING,
+    addressDetail: DataTypes.STRING,
     phone: DataTypes.STRING,
     profile_image: DataTypes.STRING,//multer 
-    live_status: { 
-      type:DataTypes.BOOLEAN,
+    live_status: {
+      type: DataTypes.BOOLEAN,
       defaultValue: 0
     },
-    is_seller: { 
-      type:DataTypes.BOOLEAN,
+    is_seller: {
+      type: DataTypes.BOOLEAN,
       defaultValue: 0
     },
   }, {
