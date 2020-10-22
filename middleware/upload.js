@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
             Date.now() +
             '.' +
             file.originalname.split('.')[file.originalname.split('.').length - 1]
-        );   // 체크
+        );   // 고유 user id
     }
 });
 
@@ -34,7 +34,7 @@ const upload = multer({
         let ext = path.extname(file.originalname);
         console.log(ext);
         if (file.fieldname === 'avatar') {
-            if (!['.jpg', '.jpeng', '.png', '.gif'].includes(ext)) {
+            if (!['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
                 return callback(new Error('Only Images are allowed'));
             }
             if (file.size < 110 * 110 * 2) {
@@ -42,7 +42,7 @@ const upload = multer({
             }
         }
         if (file.fieldname === 'products') {
-            if (!['.jpg', '.jpeng', '.png', '.gif'].includes(ext)) {
+            if (!['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
                 return callback(new Error('Only Images are allowed'));
             }
             if (file.size > 1024 * 1024 * 15) {
