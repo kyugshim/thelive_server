@@ -1,6 +1,5 @@
 const NodeMediaServer = require('node-media-server');
 const nodeMediaServerConfig = require('./config/nodeMediaServer')
-const { user } = require('./models')
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -12,7 +11,7 @@ const models = require('./models/index')
 const http = require('http');
 const utils = require('./utils');
 
-const app = require('express')()
+const app = express();
 const server = require("http").createServer(app)
 
 
@@ -27,7 +26,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: '1218', // database password 인가???
+  password: '1', // database password 인가???
   database: 'theLive'
 }
 
@@ -38,8 +37,6 @@ const session = require("express-session")({
   key: 'express.sid',
   secret: "4B",
   store: sessionStore,
-  success: onAuthorizeSuccess(),
-  fail: onAuthorizeFail(),
   resave: true,
   saveUninitialized: true
 })
@@ -80,8 +77,8 @@ io.use(passportSocketIo.authorize({
   key: 'express.sid',
   secret: '4B',
   store: sessionStore,
-  success: onAuthorizeFail,
-  fail: onAuthorizeFail
+  // success: onAuthorizeFail,
+  // fail: onAuthorizeFail
 }));
 
 app.use(
@@ -186,13 +183,17 @@ app.get('/auth/facebook', (req, res, next) => auth.oAuthfacebook(req, res, next)
 app.get('auth/facebook/callback', auth.facebookCallback)
 
 // get 요청에 대한 응답 (API)
+app.get("/userInfo", controller.userInfo);
+app.get("/signout", controller.signOut);
+
+
+// post 요청
 app.post("/signup", controller.signUp);
-app.post("/signout", controller.signOut);
-app.post("/signeditnickname", controller.signEditNickname);
-app.post("/signeditpassword", controller.signEditPassword);
-
-
-
+// app.post("/signeditnickname", controller.signEditNickname);
+// app.post("/signeditpassword", controller.signEditPassword);
+app.post("/additem", controller.createProduct);
+app.post("/addwishlist", controller.createWishList);
+app.post("/deletewishlist", controller.deleteWishList);
 
 
 app.use(bodyParser.json());
@@ -201,7 +202,7 @@ app.set('server', server);
 app.use(express.static(`${__dirname}/public`));
 app.set('port', port);
 // app.listen(port, () => {
-//     console.log(`app is the-live-server in PORT ${port}`);
+//   console.log(`app is the-live-server in PORT ${port}`);
 // });
 server.listen(5000, (err) => {
   if (err) {

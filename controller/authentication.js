@@ -39,11 +39,17 @@ module.exports = {
         passport.authenticate('local', (err, user, info) => {
             if (err) { return next(err) }
             if (!user) { res.status(401).end() }
-            else { res.status(200).end() }
+            else {
+                req.login(user, (err) => {
+                    if (err) { return next(err) }
+                    res.status(200).end()
+                })
+            }
         })(req, res, next)
 
         // authenticate에서 Success 되었다면, 해당 유저를 구분할 수 있도록 Session에 해당 유저의 Unique한 데이터를 담습니다.
         passport.serializeUser((user, done) => { // serializeUser 메소드에 오는 인자 user는 로그인 성공 판정 함수에서 반환하는 해당 유저의 정보입니다. [현재 파일 27번째줄 done의 두번째 인자를 여기로 끌고옵니다.]
+            console.log('serialize', user)
             done(null, user.id) // session에 users 테이블의 id값을 담았습니다.
         })
 
@@ -106,56 +112,61 @@ module.exports = {
 
     googleRedirect(req, res, next) {    // "/auth/google/redirect"로 들어온 Get 요청을 처리해줍니다. 로그인이 성공한 경우 클라이언트의 /main으로 리다이렉트 해줍니다.
 
-    // react-native
+        // react-native
         passport.authenticate('google', (err, user, info) => {
             if (err) { return next(err) }
             if (!user) { res.status(401).end() }
-            else { res.status(200).end() }
+            else {
+                req.login(user, (err) => {
+                    if (err) { return next(err) }
+                    res.status(200).end()
+                })
+            }
         })(req, res, next)
     },
 
-    oAuthfacebook(req,res,next){
+    oAuthfacebook(req, res, next) {
 
         passport.use(new FacebookStrategy({
             clientID: '3349095301825616',
             clientSecret: 'a906407cd840acb60c5bd27da60b1c87',
             callbackURL: 'http://localhost:5000/auth/facebook/callback',
             passReqToCallback: true,
-          }, function (request, accessToken, refreshToken, profile, done) { // Google로부터 받은 profile의 email을 DB에서 조회합니다.
+        }, function (request, accessToken, refreshToken, profile, done) { // Google로부터 받은 profile의 email을 DB에서 조회합니다.
             user.findOne({
                 where: { email: profile.emails[0].value }
             })
                 .then(result => {
-                    if (result) { done(null, result) } 
+                    if (result) { done(null, result) }
                     else {
                         user
                             .create({ email: profile.emails[0].value, full_name: profile.displayName })
-                            .then(newUser => done(null, newUser)) 
+                            .then(newUser => done(null, newUser))
                     }
                 });
 
-                passport.authenticate('facebook', { authType: 'rerequest', scope: ['public_profile', 'email'] })(req, res, next);
+            passport.authenticate('facebook', { authType: 'rerequest', scope: ['public_profile', 'email'] })(req, res, next);
 
-                passport.serializeUser((user, done) => { 
-                    done(null, user.id)
+            passport.serializeUser((user, done) => {
+                done(null, user.id)
+            })
+
+            passport.deserializeUser((userId, done) => {
+                console.log('is deserialize working?')
+                user.findOne({
+                    where: {
+                        id: userId
+                    }
+                }).then(user => {
+                    done(null, user)
                 })
-        
-                passport.deserializeUser((userId, done) => {
-                    console.log('is deserialize working?')
-                    user.findOne({
-                        where: {
-                            id: userId
-                        }
-                    }).then(user => {
-                        done(null, user)
-                    })
-                })
-                
+            })
+
         }
-    ));
+        ));
     },
 
-    facebookCallback(req, res, next){
+    facebookCallback(req, res, next) {
         passport.authenticate('facebook', (err, user, info) => {
             if (err) { return next(err) }
             if (!user) { res.status(401).end() }
