@@ -37,7 +37,8 @@ module.exports = (sequelize, DataTypes) => {
     countHeart: {
       type: DataTypes.INTEGER,
       default: 0,
-    }
+    },
+    userId : DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'broadcast',
