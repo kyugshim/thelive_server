@@ -15,6 +15,9 @@ module.exports = (sequelize, DataTypes) => {
         as: "follower",
         through: "follow"
       })
+      user.belongsToMany(models.product,{
+        through: "wishlist"
+      })
       user.hasMany(models.product);
       user.hasMany(models.order);
     }
@@ -29,8 +32,9 @@ module.exports = (sequelize, DataTypes) => {
     fullname: DataTypes.STRING,
     nickname: DataTypes.STRING,
     address: DataTypes.STRING,
-    phone: DataTypes.INTEGER,
-    profile_image: DataTypes.STRING,
+    addressDetail : DataTypes.STRING,
+    phone: DataTypes.STRING,
+    profile_image: DataTypes.STRING,//multer 
     live_status: { 
       type:DataTypes.BOOLEAN,
       defaultValue: 0

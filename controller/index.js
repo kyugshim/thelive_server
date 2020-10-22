@@ -1,6 +1,14 @@
+const { user } = require('../models');
+const { order } = require('../models');
+const { product } = require('../models');
+const { broadcast } = require('../models');
+
+const { follow } = require('../models');
+const { wishlist } = require('../models');
+
 module.exports = {
     signUp: (req, res) => {
-        const { email, password, fullname, nickname, phone, address, profileImage } = req.body;
+        const { email, password, fullname, nickname, phone, address, addressDetail ,profileImage } = req.body;
 
         user.findOrCreate({
             where: {
@@ -85,6 +93,42 @@ module.exports = {
             });
         }
     },
+
+    /**********   CREATE   ************/
+    userCreate: (req, res) => {
+        user.create({}) 
+    },
+    productCreate: (req, res) => {
+        product.create({}) 
+    },
+
+    orderCreate: (req, res) => {
+        order.create({}) 
+    },
+
+    broadcastCreate: (req, res) => {
+        broadcast.create({}) 
+    }
+
+    /**********   READ  ************/
+    
+
+
+
+
+
+    /**********   UPDATE  ************/
+    
+
+
+
+
+
+    /**********   DELETE   ************/
+    
+
+
+    
 
     
 

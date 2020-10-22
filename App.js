@@ -1,39 +1,91 @@
 const NodeMediaServer = require('node-media-server');
+const nodeMediaServerConfig = require('./config/nodeMediaServer')
+const { user } = require('./models')
 const express = require('express');
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 
-// const cors = require('cors');
-
+const path = require('path');
 const morgan = require('morgan');
 const models = require('./models/index')
 const http = require('http');
 const utils = require('./utils');
-const app = express();
-const port = 5000;
-const auth = require('./controller/authentication')
-const controller = require('./controller/index')
-const server = http.createServer(app);
-const multer = require("multer");
-const { pathToFileURL } = require('url');
+
+const app = require('express')()
+const server = require("http").createServer(app)
 
 
-const io = require('socket.io').listen(server)
+const MYSQLStore = require('express-mysql-session');
+const io = require("socket.io")(server)
 require(`./controller/socketIO`)(io);
+
+// find 
+const passportSocketIo = require("passport.socketio");
+
+const options = {
+  host: 'localhost',
+  port: '3306',
+  user: 'root',
+  password: '1218', // database password 인가???
+  database: 'theLive'
+}
+
+const sessionStore = new MYSQLStore(options)
+
+const session = require("express-session")({
+  cookieParser: app.cookieParser,
+  key: 'express.sid',
+  secret: "4B",
+  store: sessionStore,
+  success: onAuthorizeSuccess(),
+  fail: onAuthorizeFail(),
+  resave: true,
+  saveUninitialized: true
+})
+
+function onAuthorizeSuccess(data, accept) {
+  console.log('successful connection to socket.io');
+
+  // The accept-callback still allows us to decide whether to
+  // accept the connection or not.
+
+}
+
+function onAuthorizeFail(data, message, error, accept) {
+  if (error)
+    throw new Error(message);
+  console.log('failed connection to socket.io:', message);
+
+  // We use this callback to log all of our failed connections.
+}
+
+const port = 5000;
+const auth = require('./controller/authentication');
+const controller = require('./controller/index');
+const { pathToFileURL } = require('url');
+const upload = require('./middleware/upload');
 
 models.sequelize.sync()
   .then(() => console.log('동기화 성공'))
   .catch(e => console.log(e));
 
+require(`./controller/socketIO`)(io);
+
+
+app.use(session);
+
+io.use(passportSocketIo.authorize({
+  cookieParser: cookieParser,
+  key: 'express.sid',
+  secret: '4B',
+  store: sessionStore,
+  success: onAuthorizeFail,
+  fail: onAuthorizeFail
+}));
 
 app.use(
-  session({
-    secret: '@4B', // 상의 후 결정
-    resave: false,
-    saveUninitialized: true
-  })
+  session
 );
 
 app.use(morgan('dev'));
@@ -42,11 +94,77 @@ app.use(express.json());
 
 /********** multer ************/
 //user avatar
-app.post('/profile', upload.single('avatar'), function (req, res, next) {
+app.post('/profile', upload.single('avatar'), async (req, res) => {
   // req.file is the `avatar` file
   // req.body will hold the text fields, if there were any
+  console.log();
+  try {
+    const avatar = req.file;
 
-  console.log(req, res);
+    // make sure file is available
+    if (!avatar) {
+      res.status(400).send({
+        status: false,
+        data: 'No file is selected.'
+      });
+    } else {
+      // send response
+      res.status(200).send({
+        status: true,
+        message: 'File is uploaded.',
+        data: {
+          originalname: avatar.originalname,
+          encoding: avatar.encoding,
+          mimetype: avatar.mimetype,
+          destination: avatar.destination,
+          filename: avatar.filename,
+          path: avatar.path,
+          size: avatar.size
+        }
+      });
+    }
+
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+app.post('/products', upload.array('products', 5), async (req, res) => {
+  // req.files is array of `photos` files
+  // req.body will contain the text fields, if there were any
+  console.log();
+  try {
+    const products = req.files;
+
+    // make sure file is available
+    if (!products) {
+      res.status(400).send({
+        status: false,
+        data: 'No file is selected.'
+      });
+    } else {
+      // send response
+      let data = [];
+
+      products.map(p => data.push({
+        originalname: p.originalname,
+        encoding: p.encoding,
+        mimetype: p.mimetype,
+        destination: p.destination,
+        filename: p.filename,
+        path: p.path,
+        size: p.size
+      }));
+      res.status(200).send({
+        status: true,
+        message: 'File is uploaded.',
+        data: data
+      });
+    }
+
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 
@@ -82,36 +200,19 @@ app.set('socketio', io);
 app.set('server', server);
 app.use(express.static(`${__dirname}/public`));
 app.set('port', port);
-app.listen(app.get('port'), () => {
-  console.log(`app is the-live-server in PORT ${app.get('port')}`);
-});
+// app.listen(port, () => {
+//     console.log(`app is the-live-server in PORT ${port}`);
+// });
+server.listen(5000, (err) => {
+  if (err) {
+    console.log(err)
+  } else {
+    console.log(`listening on port ${port}`)
+  }
+})
 
-const nodeMediaServerConfig = {
-  rtmp: {
-    port: 1935,
-    chunk_size: 60000,
-    gop_cache: true,
-    ping: 60,
-    ping_timeout: 30,
-  },
-  http: {
-    port: 8000,
-    mediaroot: './media',
-    allow_origin: '*',
-  },
-  trans: {
-    ffmpeg: '/usr/bin/ffmpeg',
-    tasks: [
-      {
-        app: 'live',
-        ac: 'aac',
-        mp4: true,
-        mp4Flags: '[movflags=faststart]',
-      },
-    ],
-  },
-};
 
+/*************       NodeMedia       *****************/
 const nms = new NodeMediaServer(nodeMediaServerConfig);
 nms.run();
 
@@ -125,6 +226,7 @@ nms.on('getFilePath', (streamPath, oupath, mp4Filename) => {
 
 nms.on('preConnect', (id, args) => {
   console.log('[NodeEvent on preConnect]', `id=${id} args=${JSON.stringify(args)}`);
+
 });
 
 nms.on('postConnect', (id, args) => {
@@ -136,10 +238,12 @@ nms.on('doneConnect', (id, args) => {
 });
 
 nms.on('prePublish', (id, StreamPath, args) => {
+  let stream_key = getStreamKeyFromStreamPath(StreamPath);
   console.log(
     '[NodeEvent on prePublish]',
     `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`
-  );
+  )
+
 });
 
 nms.on('postPublish', (id, StreamPath, args) => {
@@ -148,5 +252,6 @@ nms.on('postPublish', (id, StreamPath, args) => {
     `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`
   );
 });
+
 
 module.exports = app, session;
