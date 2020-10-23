@@ -61,7 +61,11 @@ const port = 5000;
 const auth = require('./controller/authentication');
 const controller = require('./controller/index');
 const { pathToFileURL } = require('url');
+
+const sharedsession = require('express-socket.io-session');
+
 const upload = require('./middleware/upload');
+
 
 models.sequelize.sync()
   .then(() => console.log('동기화 성공'))
@@ -72,18 +76,7 @@ require(`./controller/socketIO`)(io);
 
 app.use(session);
 
-io.use(passportSocketIo.authorize({
-  cookieParser: cookieParser,
-  key: 'express.sid',
-  secret: '4B',
-  store: sessionStore,
-  // success: onAuthorizeFail,
-  // fail: onAuthorizeFail
-}));
-
-app.use(
-  session
-);
+io.use(sharedsession(session));
 
 app.use(morgan('dev'));
 app.use(cookieParser());

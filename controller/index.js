@@ -152,7 +152,7 @@ module.exports = {
                 title: title,
                 body: body,
                 price: price,
-                tag: JSON.stringify(tags),
+                tag: tags,
                 image: image,
                 image2: image2,
                 image3: image3,
