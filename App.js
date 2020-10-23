@@ -26,7 +26,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: '', // database password 인가???
+  password: '1218', // database password 인가???
   database: 'theLive'
 }
 

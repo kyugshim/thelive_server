@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": "",
+    "password": "1218",
     "database": "theLive",
     "host": "localhost",
     "dialect": "mysql"
