@@ -17,10 +17,10 @@ module.exports = (io) => {
     console.log('New connection');
     // soket 안에 session 을  넣는 코드.
     // socket.on("login", function(userdata) {
-    //   const user_session = socket.handshake.session.userdata
-    //     socket.handshake.session.save();
-    //     console.log(userdata)
-    //     console.log(user_session)
+    // const user_session = socket.handshake.session.userdata
+    // socket.handshake.session.save();
+    // console.log(userdata)
+    // console.log(user_session)
     // });
 
     // socket.on("logout", function(userdata) {
@@ -55,7 +55,9 @@ module.exports = (io) => {
     socket.on('prepare-broadcast', (data) => {
       console.log('Prepare-broadcast', data);
       const { userName, title, body } = data;
-      const session_userid = socket.handshake.session.data
+      let session_userid = socket.handshake.session.passport.user
+      console.log(session_userid)
+
       broadcast
         .findOrCreate({
           where: {
@@ -66,13 +68,14 @@ module.exports = (io) => {
             body: body,
             status: 'PR'
           }
-            .then(createdData => emitListBroadcastInfo())
         })
+        .then(createdData => emitListBroadcastInfo())
     });
 
     socket.on('begin-broadcast', (data) => {
       console.log('Begin-broadcast', data);
-      const session_userid = socket.handshake.session.data
+      const session_userid = socket.handshake
+      console.log(socket.handshake)
       const { userName, title } = data;
       if (!userName || !title) return;
       return broadcast.update(

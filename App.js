@@ -60,6 +60,7 @@ const auth = require('./controller/authentication')
 const controller = require('./controller/index')
 const multer = require("multer");
 const { pathToFileURL } = require('url');
+const sharedsession = require('express-socket.io-session');
 const storage = multer.diskStorage({
   destination: './public/uploads/',
   filename: function (req, file, cb) {
@@ -80,18 +81,7 @@ require(`./controller/socketIO`)(io);
 
 app.use(session);
 
-io.use(passportSocketIo.authorize({
-  cookieParser: cookieParser,
-  key: 'express.sid',
-  secret: '4B',
-  store: sessionStore,
-  // success: onAuthorizeFail,
-  // fail: onAuthorizeFail
-}));
-
-app.use(
-  session
-);
+io.use(sharedsession(session));
 
 app.use(morgan('dev'));
 app.use(cookieParser());
