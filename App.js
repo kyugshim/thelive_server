@@ -61,7 +61,11 @@ const port = 5000;
 const auth = require('./controller/authentication');
 const controller = require('./controller/index');
 const { pathToFileURL } = require('url');
+
+const sharedsession = require('express-socket.io-session');
+
 const upload = require('./middleware/upload');
+
 
 models.sequelize.sync()
   .then(() => console.log('동기화 성공'))
@@ -72,18 +76,7 @@ require(`./controller/socketIO`)(io);
 
 app.use(session);
 
-io.use(passportSocketIo.authorize({
-  cookieParser: cookieParser,
-  key: 'express.sid',
-  secret: '4B',
-  store: sessionStore,
-  // success: onAuthorizeFail,
-  // fail: onAuthorizeFail
-}));
-
-app.use(
-  session
-);
+io.use(sharedsession(session));
 
 app.use(morgan('dev'));
 app.use(cookieParser());
@@ -185,22 +178,34 @@ app.get('auth/facebook/callback', auth.facebookCallback)
 // get 요청에 대한 응답 (API)
 app.get("/userInfo", controller.userInfo);
 app.get("/signout", controller.signOut);
-
+app.get("/myitem", controller.getMyProduct);
+app.get("/allitem", controller.getAllProduct);
+app.get("/myorder", controller.getOrder);
 
 // post 요청
+
+/**** CREATE ****/
 app.post("/signup", controller.signUp);
-// app.post("/signeditnickname", controller.signEditNickname);
-// app.post("/signeditpassword", controller.signEditPassword);
 app.post("/additem", controller.createProduct);
 app.post("/addwishlist", controller.createWishList);
-app.post("/deletewishlist", controller.deleteWishList);
+app.post("/addorder", controller.createOrder);
 
+/**** UPDATE ****/
+app.post("/updateitem", controller.updateProduct);
+app.post("/signedit", controller.signEdit)
+
+/**** DELETE ****/
+app.post("/deletewishlist", controller.deleteWishList);
+app.post("/deleteitem", controller.deleteProduct);
+app.post("/deleteorder", controller.deleteOrder);
+app.post("/deletebroadcast", controller.deleteBroadcast);
 
 app.use(bodyParser.json());
 app.set('socketio', io);
 app.set('server', server);
 app.use(express.static(`${__dirname}/public`));
 app.set('port', port);
+
 // app.listen(port, () => {
 //   console.log(`app is the-live-server in PORT ${port}`);
 // });

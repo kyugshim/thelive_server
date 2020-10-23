@@ -56,32 +56,66 @@ module.exports = {
             res.status(401).send("세션을 찾지 못했습니다.")
         }
     },
-    signEditNickname: (req, res) => {
-        const { nickname } = req.body;
+
+    signEdit: (req, res) => {
+        const { nickname , newPassword , address , addressDetail , phone , fullname } = req.body;
         const session_userid = req.session.passport.user
-        user.update({ nickname: nickname }, { where: { id: session_userid } })
-            .then((data) => {
-                console.log(data);
-                res.status(200).json(data)
-            })
-            .catch((err) => {
-                console.log(err);
-                res.status(500);
-            });
+        const updateInfo = [ nickname , newPassword , address , addressDetail , phone , fullname ]
+
+        updateInfo.forEach((info)=>{
+            if(info){
+                if(info === nickname){
+                    user.update({
+                        nickname : info
+                        },{
+                        where: {id: session_userid}
+                        }
+                    )
+                }else if(info === newPassword){
+                    user.update({
+                        password : info
+                        },{
+                        where: {id: session_userid}
+                        }
+                    )
+                }else if(info === address){
+                    user.update({
+                        address : info
+                        },{
+                        where: {id: session_userid}
+                        }
+                    )
+                }else if(info === addressDetail){
+                    user.update({
+                        addressDetail : info
+                        },{
+                        where: {id: session_userid}
+                        }
+                    )
+                }else if(info === phone){
+                    user.update({
+                        phone : info
+                        },{
+                        where: {id: session_userid}
+                        }
+                    )
+                }else if(info === fullname){
+                    user.update({
+                        fullname : info
+                        },{
+                        where: {id: session_userid}
+                        }
+                    )
+                }
+            }
+        })
+        user.findOne({
+            where: {id: session_userid}
+        })
+        .then(data => res.status(201).json(data))
+        .catch(err => res.status(401).send(err))
     },
-    signEditPassword: (req, res) => {
-        const { newpassword } = req.body;
-        const session_userid = req.session.passport.user;
-        /* 수 정 */
-        user.update({ password: newpassword }, { where: { id: session_userid } })
-            .then(() => {
-                res.status(200).send("비밀번호 변경완료!")
-            })
-            .catch((err) => {
-                console.log(err)
-                res.status(400)
-            })
-    },
+
     signOut: (req, res) => {
         const userSession = req.session;
         console.log(req.session)
@@ -101,6 +135,9 @@ module.exports = {
 
     },
 
+
+
+
     /**********   CREATE   ************/
     createUser: (req, res) => {
         user.create({})
@@ -115,7 +152,7 @@ module.exports = {
                 title: title,
                 body: body,
                 price: price,
-                tag: JSON.stringify(tags),
+                tag: tags,
                 image: image,
                 image2: image2,
                 image3: image3,
@@ -140,7 +177,24 @@ module.exports = {
     },
 
     createOrder: (req, res) => {
-        order.create({})
+        const { quantity, productId} = req.body
+        const userId = req.session.passport.user
+        user.findOne({
+            where :{id : userId}
+        })
+        .then((data)=>{
+            console.log(data);
+            order.create({
+               payment_status : "Start", // 상태설정
+               order_quantity: quantity,
+               address: data.address,
+               addressDtail: data.addressDetail,
+               productId : productId,
+               userId: userId
+            })
+            .then(data => res.status(200).send("주문성공"))
+            .catch(err => res.status(400).send("주문실패"))
+        })
     },
 
     createBroadcast: (req, res) => {
@@ -149,54 +203,95 @@ module.exports = {
     /**********   READ  ************/
 
     getUser: (req, res) => {
-        user.create({})
+        user.findOne({})
     }, // userInfo로 대체 가능
 
-    getProduct: (req, res) => {
-        product.create({})
+    getMyProduct: (req, res) => {
+        const userId = req.session.passport.user
+        product.findOne({
+            where:{userId : userId},
+        })
+        .then((data) => {res.status(201).json(data)})
+    },
+
+    getAllProduct: (req, res) => {
+        product.findAll({
+            attributes: ['title', 'body', 'price', 'tag','image', 'image2', 'image3', 'quantity', 'userId']
+        })
+        .then(data => res.status(200).json(data));
     },
 
     getOrder: (req, res) => {
-        order.create({})
+        const userId = req.session.passport.user
+        order.findOne({
+            where: {userId: userId},
+            include: [{
+                model: user,
+                attributes: ['id', 'phone', 'email'], // user.hasmany(order) 관계에서 include가 되는지 확인 필요
+            }]
+        })
     },
 
     getBroadcast: (req, res) => {
         broadcast.create({})
-    },
+    },// socketIo 로 대체 가능
 
     /**********   UPDATE  ************/
 
     updateUser: (req, res) => {
         user.create({})
-    },
+    }, // signEdit 로 대체 가능
+
     updateProduct: (req, res) => {
-        product.create({})
-    },
-
-    updateOrder: (req, res) => {
-        order.create({})
-    },
-
-    updateBroadcast: (req, res) => {
-        broadcast.create({})
+        const {productId, title, body, price,image,image2,image3,tag, quantity} = req.body
+        product.update({
+            title: title,
+            body: body,
+            price: price,
+            image: image,
+            image2: image2,
+            image3: image3,
+            tag: tag,
+            quantity: quantity
+         },
+         {
+            where: {id: productId}
+         })
+         .then(()=> res.status(201).send('수정성공'))
+         .catch((err)=> res.status(401).send(err))
     },
 
     /**********   DELETE   ************/
 
     deleteUser: (req, res) => {
-        user.create({})
-    },
+        user.destroy({})
+    }, // 아직 불가능
+
     deleteProduct: (req, res) => {
-        product.create({})
+        const userId = req.session.passport.user
+        const {productId} = req.body;
+        product.destroy({
+            where : {
+                userId: userId, 
+                id: productId
+            }
+        }).then(()=> res.status(200).send('삭제 성공'))
     },
 
     deleteOrder: (req, res) => {
-        order.create({})
+        const userId = req.session.passport.user
+        const {productId} = req.body;
+        order.destroy({
+            where: {
+                userId : userId,
+                productId: productId
+            }
+        })
     },
 
     deleteWishList: (req, res) => {
-        let userId = req.session.passport.user
-        let { productId } = req.body
+        const userId = req.session.passport.user
+        const { productId } = req.body
 
         wishlist
             .destroy({
@@ -205,7 +300,7 @@ module.exports = {
                     productId: productId
                 }
             })
-            .then(data => res.status(200).json(data))
+            .then(data => res.status(200).send('삭제 성공'))
             .catch(err => {
                 console.log(err)
                 res.status(400).send(err)
@@ -213,11 +308,14 @@ module.exports = {
     },
 
     deleteBroadcast: (req, res) => {
-        broadcast.create({})
+        const userId = req.session.passport.user
+        broadcast.destroy({
+            where: {userId: userId}
+        })
+        .then(data => res.status(200).send('삭제 성공'))
+        .catch(err => {
+                console.log(err)
+                res.status(400).send(err)
+        })
     },
-
-
-
-
-
 }
