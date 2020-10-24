@@ -34,9 +34,9 @@ const upload = multer({
 
         if (file.fieldname === 'avatar') {
             if (!['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
-                return callback(new Error('Only Images are allowed'));
+                callback(new Error('Only Images are allowed'));
             }
-            if (file.fileSize < 110 * 110 * 2) {
+            if (file.size < 110 * 110 * 2) {
                 return callback(new Error('File size exceeds 2 MB'));
             }
         }
