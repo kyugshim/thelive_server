@@ -28,14 +28,13 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     fileFilter: function (req, file, callback) { //res
-        console.log();
-        console.log();
-        console.log();
         let ext = path.extname(file.originalname);
+
         console.log(ext);
+
         if (file.fieldname === 'avatar') {
             if (!['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
-                return callback(new Error('Only Images are allowed'));
+                callback(new Error('Only Images are allowed'));
             }
             if (file.size < 110 * 110 * 2) {
                 return callback(new Error('File size exceeds 2 MB'));
@@ -45,12 +44,27 @@ const upload = multer({
             if (!['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
                 return callback(new Error('Only Images are allowed'));
             }
-            if (file.size > 1024 * 1024 * 15) {
+            // if (file.fileSize > 1024 * 1024 * 15) {
+            //     return callback(new Error('File size exceeds 15 MB'));
+            // }
+        }
+        callback(null, true);
+    },
+    limits: function (req, file, callback) {
+        console.log(file.fieldname);
+        if (file.fieldname === 'avatar') {
+            if (req.fileSize < 2) {
+                return callback(new Error('File size exceeds 2 MB'));
+            }
+        }
+        if (file.fieldname === 'products') {
+            if (file.fileSize < 1024 * 1024 * 15) {
                 return callback(new Error('File size exceeds 15 MB'));
             }
         }
         callback(null, true);
     }
+
 });
 
 module.exports = upload;
