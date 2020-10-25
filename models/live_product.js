@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class session extends Model {
+  class live_product extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,13 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   };
-  session.init({
-    session_id: DataTypes.STRING,
-    expires: DataTypes.INTEGER,
-    data: DataTypes.STRING
+  live_product.init({
+    broadcastId: DataTypes.INTEGER,
+    productId: DataTypes.INTEGER
   }, {
     sequelize,
-    modelName: 'session',
+    modelName: 'live_product',
   });
-  return session;
+  return live_product;
 };

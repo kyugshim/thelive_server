@@ -12,7 +12,7 @@ const nodeMediaServerConfig = {
     allow_origin: '*',
   },
   trans: {
-    ffmpeg: '/usr/bin/ffmpeg',
+    ffmpeg: '/usr/local/bin/ffmpeg',
     tasks: [
       {
         app: 'live',
