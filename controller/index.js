@@ -5,6 +5,9 @@ const { broadcast } = require('../models');
 const { session } = require('../models'); // DB상에 존재하는 sessions 테이블을 sequelize에서 사용하기 위해, session 모델을 생성했습니다.
 const { follow } = require('../models');
 const { wishlist } = require('../models');
+const sequelize = require("sequelize");
+
+ const Op = sequelize.Op;
 
 module.exports = {
     signUp: (req, res) => {
@@ -143,6 +146,23 @@ module.exports = {
         user.create({})
     }, // Signup으로 대체 가능
 
+    createFollow: (req, res) => {
+        const { sellerId } = req.body;
+        const session_userid = req.session.passport.user
+
+         follow.create({
+                    userId: session_userid,
+                    followerId: sellerId
+                    })
+                        .then((data) => {
+                            res.status(200).json(data)
+                    })
+                    .catch((err) => {
+                        console.log("id 조회 실패", err)
+                        res.status(400).send("일치하는 id가 없습니다.")
+                    })
+    },
+
     createProduct: (req, res) => {
         let userId = req.session.passport.user
         let { title, body, price, tags, image, image2, image3, quantity } = req.body
@@ -152,7 +172,7 @@ module.exports = {
                 title: title,
                 body: body,
                 price: price,
-                tag: tags,
+                tag: JSON.stringify(tags),
                 image: image,
                 image2: image2,
                 image3: image3,
@@ -185,7 +205,7 @@ module.exports = {
         .then((data)=>{
             console.log(data);
             order.create({
-               payment_status : "Start", // 상태설정
+               payment_status : "Start", // 상태설정 ...
                order_quantity: quantity,
                address: data.address,
                addressDtail: data.addressDetail,
@@ -197,8 +217,6 @@ module.exports = {
         })
     },
 
-    createBroadcast: (req, res) => {
-    }, // socket.io로 해결
 
     /**********   READ  ************/
 
@@ -208,7 +226,7 @@ module.exports = {
 
     getMyProduct: (req, res) => {
         const userId = req.session.passport.user
-        product.findOne({
+        product.findAll({
             where:{userId : userId},
         })
         .then((data) => {res.status(201).json(data)})
@@ -223,7 +241,7 @@ module.exports = {
 
     getOrder: (req, res) => {
         const userId = req.session.passport.user
-        order.findOne({
+        order.findAll({
             where: {userId: userId},
             include: [{
                 model: user,
@@ -232,15 +250,84 @@ module.exports = {
         })
     },
 
-    getBroadcast: (req, res) => {
-        broadcast.create({})
-    },// socketIo 로 대체 가능
+    getFollowList: (req, res) => {
+        const session_userid = req.session.passport.user
+        user.findOne({
+            where: { id: session_userid },
+            include: [{
+                model: user,
+                as: 'friend',
+                attributes: ['id', 'nickname', 'full_name', 'email'], 
+                through: {
+                    attributes: ['id', 'userId', 'friendId', 'block']
+                }
+            }]
+        })
+            .then((data) => {
+                console.log(req.session)
+                res.status(200).json(data);
+            })
+            .catch((err) => {
+                console.log(req.session)
+                console.log("목록을 불러오는데에 에러:", err);
+                res.status(400).send("불러올 친구가 없나봅니다.human")
+            })
+    },
+
+    searchProBro: (req, res) =>{
+        const { searchString } = req.body;
+        
+        broadcast.findAll({
+            where: {[Op.or] :[ 
+                { title: {[Op.like]: [`%${searchString}%`] }},
+                { body : {[Op.like]: [`%${searchString}%`] }}
+                ]},
+            // include:[product]
+        })
+        .then((broadcastList) => {
+            product.findAll({
+                where: {[Op.or] :[ 
+                        { title: {[Op.like]: [`%${searchString}%`] }},
+                        { body : {[Op.like]: [`%${searchString}%`] }}
+                        ]},
+                // include: [broadcast]
+            })
+            .then((productList) => {
+                user.findAll({
+                    where: {[Op.or]: [
+                        { nickname: {[Op.like]: [`%${searchString}%`] }},
+                        { fullname: {[Op.like]: [`%${searchString}%`] }}
+                    ]}
+                })
+                .then((users) => {
+                    let obj = {
+                       broad : broadcastList,
+                       product:productList,
+                       user : users
+                    }
+                    res.status(200).json(obj)})
+            })
+            .catch(err => res.status(400).send('제품 검색오류.'))
+        })
+    },
 
     /**********   UPDATE  ************/
 
     updateUser: (req, res) => {
         user.create({})
     }, // signEdit 로 대체 가능
+
+    updateIsSeller: (req, res) => {
+        const session_userid = req.body.session.passport.user
+        user.update({
+            is_seller : 1
+        },
+        {
+            where : {id : session_userid}
+        })
+        .then(()=> res.status(201).send("당신은 이제 seller입니다."))
+        .catch(err => res.status(400).send(err))
+    },
 
     updateProduct: (req, res) => {
         const {productId, title, body, price,image,image2,image3,tag, quantity} = req.body

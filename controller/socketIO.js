@@ -54,10 +54,11 @@ module.exports = (io) => {
 
     socket.on('prepare-broadcast', (data) => {
       console.log('Prepare-broadcast', data);
-      const { userName, title, body } = data;
+      const { title, body } = data;
+      socket.handshake.session.save();
+      console.log(socket.handshake.session)
       let session_userid = socket.handshake.session.passport.user
       console.log(session_userid)
-
       broadcast
         .findOrCreate({
           where: {

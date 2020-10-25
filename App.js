@@ -20,13 +20,12 @@ const io = require("socket.io")(server)
 require(`./controller/socketIO`)(io);
 
 // find 
-const passportSocketIo = require("passport.socketio");
 
 const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: '', // database password 인가???
+  password: '[144leader!]', // database password 인가???
   database: 'theLive'
 }
 
@@ -40,22 +39,6 @@ const session = require("express-session")({
   resave: true,
   saveUninitialized: true
 })
-
-function onAuthorizeSuccess(data, accept) {
-  console.log('successful connection to socket.io');
-
-  // The accept-callback still allows us to decide whether to
-  // accept the connection or not.
-
-}
-
-function onAuthorizeFail(data, message, error, accept) {
-  if (error)
-    throw new Error(message);
-  console.log('failed connection to socket.io:', message);
-
-  // We use this callback to log all of our failed connections.
-}
 
 const port = 5000;
 const auth = require('./controller/authentication');
@@ -76,7 +59,9 @@ require(`./controller/socketIO`)(io);
 
 app.use(session);
 
-io.use(sharedsession(session));
+io.use(sharedsession(session,{
+  autoSave:true
+}));
 
 app.use(morgan('dev'));
 app.use(cookieParser());
@@ -181,6 +166,8 @@ app.get("/signout", controller.signOut);
 app.get("/myitem", controller.getMyProduct);
 app.get("/allitem", controller.getAllProduct);
 app.get("/myorder", controller.getOrder);
+app.get("/followlist", controller.getFollowList)
+app.get("/search", controller.searchProBro);
 
 // post 요청
 
@@ -189,10 +176,13 @@ app.post("/signup", controller.signUp);
 app.post("/additem", controller.createProduct);
 app.post("/addwishlist", controller.createWishList);
 app.post("/addorder", controller.createOrder);
+app.post("/addfollow", controller.createFollow);
+
 
 /**** UPDATE ****/
 app.post("/updateitem", controller.updateProduct);
 app.post("/signedit", controller.signEdit)
+app.post("/addseller", controller.updateIsSeller);
 
 /**** DELETE ****/
 app.post("/deletewishlist", controller.deleteWishList);
@@ -244,7 +234,6 @@ nms.on('doneConnect', (id, args) => {
 });
 
 nms.on('prePublish', (id, StreamPath, args) => {
-  let stream_key = getStreamKeyFromStreamPath(StreamPath);
   console.log(
     '[NodeEvent on prePublish]',
     `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`
