@@ -15,6 +15,9 @@ module.exports = (sequelize, DataTypes) => {
       product.belongsToMany(models.user, {
         through: 'whishlist'
       })
+      product.belongsToMany(models.user, {
+        through: 'live_product'
+      })
     }
   };
   product.init({

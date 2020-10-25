@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
       broadcast.belongsTo(models.user)
       
       broadcast.hasMany(models.product)
+
+      broadcast.belongsToMany(models.product, {
+        through: 'live_product'
+      })
     }
   };
   broadcast.init({
