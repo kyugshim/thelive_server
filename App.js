@@ -25,7 +25,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: null, // database password 인가???
+  password: '1',
   database: 'theLive'
 }
 
@@ -48,6 +48,7 @@ const { pathToFileURL } = require('url');
 const sharedsession = require('express-socket.io-session');
 
 const upload = require('./middleware/upload');
+const { config } = require('process');
 
 
 models.sequelize.sync()
@@ -59,9 +60,7 @@ require(`./controller/socketIO`)(io);
 
 app.use(session);
 
-io.use(sharedsession(session), {
-  autoSave: true
-});
+io.use(sharedsession(session, { autoSave: true }));
 
 app.use(morgan('dev'));
 app.use(cookieParser());
@@ -133,12 +132,11 @@ app.post('/profile', upload.single('avatar'), async (req, res) => {
 app.post('/products', upload.array('products', 5), async (req, res) => {
   // req.files is array of `photos` files
   // req.body will contain the text fields, if there were any
-  console.log();
+  console.log(req);
   try {
     const products = req.files;
-
     // make sure file is available
-    if (!products) {
+    if (!products.length) {
       res.status(400).send({
         status: false,
         data: 'No file is selected.'
@@ -147,15 +145,17 @@ app.post('/products', upload.array('products', 5), async (req, res) => {
       // send response
       let data = [];
 
-      products.map(p => data.push({
-        originalname: p.originalname,
-        encoding: p.encoding,
-        mimetype: p.mimetype,
-        destination: p.destination,
-        filename: p.filename,
-        path: p.path,
-        size: p.size
-      }));
+      products.map(p => {
+        data.push({
+          originalname: p.originalname,
+          encoding: p.encoding,
+          mimetype: p.mime,
+          destination: p.destination,
+          filename: p.filename,
+          path: p.path,
+          size: p.size
+        })
+      });
       res.status(200).send({
         status: true,
         message: 'File is uploaded.',
@@ -164,6 +164,7 @@ app.post('/products', upload.array('products', 5), async (req, res) => {
     }
 
   } catch (err) {
+    console.log(err)
     res.status(500).send(err);
   }
 });
@@ -259,7 +260,6 @@ nms.on('doneConnect', (id, args) => {
 });
 
 nms.on('prePublish', (id, StreamPath, args) => {
-  let stream_key = getStreamKeyFromStreamPath(StreamPath);
   console.log(
     '[NodeEvent on prePublish]',
     `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`
