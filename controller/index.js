@@ -7,7 +7,7 @@ const { follow } = require('../models');
 const { wishlist } = require('../models');
 const sequelize = require("sequelize");
 
- const Op = sequelize.Op;
+const Op = sequelize.Op;
 
 module.exports = {
     signUp: (req, res) => {
@@ -61,62 +61,62 @@ module.exports = {
     },
 
     signEdit: (req, res) => {
-        const { nickname , newPassword , address , addressDetail , phone , fullname } = req.body;
+        const { nickname, newPassword, address, addressDetail, phone, fullname } = req.body;
         const session_userid = req.session.passport.user
-        const updateInfo = [ nickname , newPassword , address , addressDetail , phone , fullname ]
+        const updateInfo = [nickname, newPassword, address, addressDetail, phone, fullname]
 
-        updateInfo.forEach((info)=>{
-            if(info){
-                if(info === nickname){
+        updateInfo.forEach((info) => {
+            if (info) {
+                if (info === nickname) {
                     user.update({
-                        nickname : info
-                        },{
-                        where: {id: session_userid}
-                        }
+                        nickname: info
+                    }, {
+                        where: { id: session_userid }
+                    }
                     )
-                }else if(info === newPassword){
+                } else if (info === newPassword) {
                     user.update({
-                        password : info
-                        },{
-                        where: {id: session_userid}
-                        }
+                        password: info
+                    }, {
+                        where: { id: session_userid }
+                    }
                     )
-                }else if(info === address){
+                } else if (info === address) {
                     user.update({
-                        address : info
-                        },{
-                        where: {id: session_userid}
-                        }
+                        address: info
+                    }, {
+                        where: { id: session_userid }
+                    }
                     )
-                }else if(info === addressDetail){
+                } else if (info === addressDetail) {
                     user.update({
-                        addressDetail : info
-                        },{
-                        where: {id: session_userid}
-                        }
+                        addressDetail: info
+                    }, {
+                        where: { id: session_userid }
+                    }
                     )
-                }else if(info === phone){
+                } else if (info === phone) {
                     user.update({
-                        phone : info
-                        },{
-                        where: {id: session_userid}
-                        }
+                        phone: info
+                    }, {
+                        where: { id: session_userid }
+                    }
                     )
-                }else if(info === fullname){
+                } else if (info === fullname) {
                     user.update({
-                        fullname : info
-                        },{
-                        where: {id: session_userid}
-                        }
+                        fullname: info
+                    }, {
+                        where: { id: session_userid }
+                    }
                     )
                 }
             }
         })
         user.findOne({
-            where: {id: session_userid}
+            where: { id: session_userid }
         })
-        .then(data => res.status(201).json(data))
-        .catch(err => res.status(401).send(err))
+            .then(data => res.status(201).json(data))
+            .catch(err => res.status(401).send(err))
     },
 
     signOut: (req, res) => {
@@ -150,17 +150,17 @@ module.exports = {
         const { sellerId } = req.body;
         const session_userid = req.session.passport.user
 
-         follow.create({
-                    userId: session_userid,
-                    followerId: sellerId
-                    })
-                        .then((data) => {
-                            res.status(200).json(data)
-                    })
-                    .catch((err) => {
-                        console.log("id 조회 실패", err)
-                        res.status(400).send("일치하는 id가 없습니다.")
-                    })
+        follow.create({
+            userId: session_userid,
+            followerId: sellerId
+        })
+            .then((data) => {
+                res.status(200).json(data)
+            })
+            .catch((err) => {
+                console.log("id 조회 실패", err)
+                res.status(400).send("일치하는 id가 없습니다.")
+            })
     },
 
     createProduct: (req, res) => {
@@ -197,24 +197,24 @@ module.exports = {
     },
 
     createOrder: (req, res) => {
-        const { quantity, productId} = req.body
+        const { quantity, productId } = req.body
         const userId = req.session.passport.user
         user.findOne({
-            where :{id : userId}
+            where: { id: userId }
         })
-        .then((data)=>{
-            console.log(data);
-            order.create({
-               payment_status : "Start", // 상태설정 ...
-               order_quantity: quantity,
-               address: data.address,
-               addressDtail: data.addressDetail,
-               productId : productId,
-               userId: userId
+            .then((data) => {
+                console.log(data);
+                order.create({
+                    payment_status: "Start", // 상태설정
+                    order_quantity: quantity,
+                    address: data.address,
+                    addressDtail: data.addressDetail,
+                    productId: productId,
+                    userId: userId
+                })
+                    .then(data => res.status(200).send("주문성공"))
+                    .catch(err => res.status(400).send("주문실패"))
             })
-            .then(data => res.status(200).send("주문성공"))
-            .catch(err => res.status(400).send("주문실패"))
-        })
     },
 
 
@@ -227,22 +227,22 @@ module.exports = {
     getMyProduct: (req, res) => {
         const userId = req.session.passport.user
         product.findAll({
-            where:{userId : userId},
+            where: { userId: userId },
         })
-        .then((data) => {res.status(201).json(data)})
+            .then((data) => { res.status(201).json(data) })
     },
 
     getAllProduct: (req, res) => {
         product.findAll({
-            attributes: ['title', 'body', 'price', 'tag','image', 'image2', 'image3', 'quantity', 'userId']
+            attributes: ['title', 'body', 'price', 'tag', 'image', 'image2', 'image3', 'quantity', 'userId']
         })
-        .then(data => res.status(200).json(data));
+            .then(data => res.status(200).json(data));
     },
 
     getOrder: (req, res) => {
         const userId = req.session.passport.user
         order.findAll({
-            where: {userId: userId},
+            where: { userId: userId },
             include: [{
                 model: user,
                 attributes: ['id', 'phone', 'email'], // user.hasmany(order) 관계에서 include가 되는지 확인 필요
@@ -257,7 +257,7 @@ module.exports = {
             include: [{
                 model: user,
                 as: 'friend',
-                attributes: ['id', 'nickname', 'full_name', 'email'], 
+                attributes: ['id', 'nickname', 'full_name', 'email'],
                 through: {
                     attributes: ['id', 'userId', 'friendId', 'block']
                 }
@@ -274,63 +274,89 @@ module.exports = {
             })
     },
 
-    searchProBro: (req, res) =>{
+    searchProBro: (req, res) => {
         const { searchString } = req.body;
-        
+
         broadcast.findAll({
-            where: {[Op.or] :[ 
-                { title: {[Op.like]: [`%${searchString}%`] }},
-                { body : {[Op.like]: [`%${searchString}%`] }}
-                ]},
+            where: {
+                [Op.or]: [
+                    { title: { [Op.like]: [`%${searchString}%`] } },
+                    { body: { [Op.like]: [`%${searchString}%`] } }
+                ]
+            },
             // include:[product]
         })
-        .then((broadcastList) => {
-            product.findAll({
-                where: {[Op.or] :[ 
-                        { title: {[Op.like]: [`%${searchString}%`] }},
-                        { body : {[Op.like]: [`%${searchString}%`] }}
-                        ]},
-                // include: [broadcast]
-            })
-            .then((productList) => {
-                user.findAll({
-                    where: {[Op.or]: [
-                        { nickname: {[Op.like]: [`%${searchString}%`] }},
-                        { fullname: {[Op.like]: [`%${searchString}%`] }}
-                    ]}
+            .then((broadcastList) => {
+                product.findAll({
+                    where: {
+                        [Op.or]: [
+                            { title: { [Op.like]: [`%${searchString}%`] } },
+                            { body: { [Op.like]: [`%${searchString}%`] } }
+                        ]
+                    },
+                    // include: [broadcast]
                 })
-                .then((users) => {
-                    let obj = {
-                       broad : broadcastList,
-                       product:productList,
-                       user : users
-                    }
-                    res.status(200).json(obj)})
+                    .then((productList) => {
+                        user.findAll({
+                            where: {
+                                [Op.or]: [
+                                    { nickname: { [Op.like]: [`%${searchString}%`] } },
+                                    { fullname: { [Op.like]: [`%${searchString}%`] } }
+                                ]
+                            }
+                        })
+                            .then((users) => {
+                                let obj = {
+                                    broad: broadcastList,
+                                    product: productList,
+                                    user: users
+                                }
+                                res.status(200).json(obj)
+                            })
+                    })
+                    .catch(err => res.status(400).send('제품 검색오류.'))
             })
-            .catch(err => res.status(400).send('제품 검색오류.'))
-        })
     },
 
     /**********   UPDATE  ************/
 
-    updateUser: (req, res) => {
-        user.create({})
-    }, // signEdit 로 대체 가능
+    updateSeller: (req, res) => {
+        let session_userid = req.session.passport.user
+
+        user.findOne({
+            where: {
+                id: session_userid
+            }
+        })
+            .then(data => {
+                if (data.is_seller) {
+                    data.update({ is_seller: false })
+                        .then(() => res.status(200).end())
+                } else {
+                    data.update({ is_seller: true })
+                        .then(() => res.status(200).end())
+                }
+            })
+            .catch(err => {
+                console.log(err)
+                res.status(400).end();
+            })
+    },
 
     updateIsSeller: (req, res) => {
-        const session_userid = req.body.session.passport.user
+        const session_userid = req.session.passport.user
         user.update({
-            is_seller : 1
+            is_seller: 1
         },
-        {
-            where : {id : session_userid}
-        })
-        .then(()=> res.status(201).send("당신은 이제 seller입니다."))
-        .catch(err => res.status(400).send(err))
+            {
+                where: { id: session_userid }
+            })
+            .then(() => res.status(201).send("당신은 이제 seller입니다."))
+            .catch(err => res.status(400).send(err))
     },
 
     updateProduct: (req, res) => {
-        const {productId, title, body, price,image,image2,image3,tag, quantity} = req.body
+        const { productId, title, body, price, image, image2, image3, tag, quantity } = req.body
         product.update({
             title: title,
             body: body,
@@ -340,12 +366,12 @@ module.exports = {
             image3: image3,
             tag: tag,
             quantity: quantity
-         },
-         {
-            where: {id: productId}
-         })
-         .then(()=> res.status(201).send('수정성공'))
-         .catch((err)=> res.status(401).send(err))
+        },
+            {
+                where: { id: productId }
+            })
+            .then(() => res.status(201).send('수정성공'))
+            .catch((err) => res.status(401).send(err))
     },
 
     /**********   DELETE   ************/
@@ -356,21 +382,21 @@ module.exports = {
 
     deleteProduct: (req, res) => {
         const userId = req.session.passport.user
-        const {productId} = req.body;
+        const { productId } = req.body;
         product.destroy({
-            where : {
-                userId: userId, 
+            where: {
+                userId: userId,
                 id: productId
             }
-        }).then(()=> res.status(200).send('삭제 성공'))
+        }).then(() => res.status(200).send('삭제 성공'))
     },
 
     deleteOrder: (req, res) => {
         const userId = req.session.passport.user
-        const {productId} = req.body;
+        const { productId } = req.body;
         order.destroy({
             where: {
-                userId : userId,
+                userId: userId,
                 productId: productId
             }
         })
@@ -397,12 +423,12 @@ module.exports = {
     deleteBroadcast: (req, res) => {
         const userId = req.session.passport.user
         broadcast.destroy({
-            where: {userId: userId}
+            where: { userId: userId }
         })
-        .then(data => res.status(200).send('삭제 성공'))
-        .catch(err => {
+            .then(data => res.status(200).send('삭제 성공'))
+            .catch(err => {
                 console.log(err)
                 res.status(400).send(err)
-        })
+            })
     },
 }
