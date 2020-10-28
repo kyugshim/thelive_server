@@ -116,7 +116,7 @@ module.exports = (io) => {
       const session_userid = socket.handshake.session.passport.user;
 
         const chat = [nickName, message]
-        io.in(title).emit('send-message', chat)});
+       return io.in(title).emit('send-message', chat)});
        }
     /*** 저장한 동영상을 어떻게 볼지***/
     // socket.on('replay', (data) => {
