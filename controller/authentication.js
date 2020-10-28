@@ -110,6 +110,17 @@ module.exports = {
         })
     },
 
+    // passport.authenticate('local', (err, user, info) => {
+    //     if (err) { return next(err) }
+    //     if (!user) { res.status(401).end() }
+    //     else {
+    //         req.login(user, (err) => {
+    //             if (err) { return next(err) }
+    //             res.status(200).end()
+    //         })
+    //     }
+    // })(req, res, next)
+
     googleRedirect(req, res, next) {    // "/auth/google/redirect"로 들어온 Get 요청을 처리해줍니다. 로그인이 성공한 경우 클라이언트의 /main으로 리다이렉트 해줍니다.
 
         // react-native
@@ -123,6 +134,21 @@ module.exports = {
                 })
             }
         })(req, res, next)
+        
+        passport.serializeUser((user, done) => { // done의 인자로 받은 유저 정보를 통해 session에 유저의 id(DB상의 id)를 담아줍니다.
+            done(null, user.id)
+        })
+
+        passport.deserializeUser((userId, done) => {
+            console.log('is deserialize working?')
+            user.findOne({
+                where: {
+                    id: userId
+                }
+            }).then(user => {
+                done(null, user)
+            })
+        })
     },
 
     oAuthfacebook(req, res, next) {

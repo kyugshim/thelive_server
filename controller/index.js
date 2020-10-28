@@ -1,12 +1,8 @@
-const { user } = require('../models');
-const { order } = require('../models');
-const { product } = require('../models');
-const { broadcast } = require('../models');
-const { session } = require('../models'); // DB상에 존재하는 sessions 테이블을 sequelize에서 사용하기 위해, session 모델을 생성했습니다.
-const { follow } = require('../models');
-const { wishlist } = require('../models');
-const sequelize = require("sequelize");
+const { user, order, product, broadcast, 
+        session, follow, wishlist, } = require('../models');
 
+const stripe = require('stripe')('sk_test_odmJuviAAUXBjd3EDTQDosgr');
+const sequelize = require('sequelize');
 const Op = sequelize.Op;
 
 module.exports = {
@@ -142,9 +138,6 @@ module.exports = {
 
 
     /**********   CREATE   ************/
-    createUser: (req, res) => {
-        user.create({})
-    }, // Signup으로 대체 가능
 
     createFollow: (req, res) => {
         const { sellerId } = req.body;
@@ -197,10 +190,10 @@ module.exports = {
     },
 
     createOrder: (req, res) => {
-        const { quantity, productId } = req.body
-        const userId = req.session.passport.user
+        const { quantity, productId, amount, sellerId} = req.body
+        const  session_userid = req.session.passport.user
         user.findOne({
-            where: { id: userId }
+            where: { id:  session_userid }
         })
             .then((data) => {
                 console.log(data);
@@ -210,24 +203,34 @@ module.exports = {
                     address: data.address,
                     addressDtail: data.addressDetail,
                     productId: productId,
-                    userId: userId
+                    userId: userId,
+                    sellerId: sellerId,
+                    amount: amount,
+                    customer_phone: data.phone
                 })
-                    .then(data => res.status(200).send("주문성공"))
+                .then(order => {
+                    product.findOne({
+                        where: {id : productId}
+                    })
+                    .then(product =>{
+                        order.addProducts(product)
+                    })
+                    .then(()=>{
+                        res.status(200).send("주문성공")
+                    })
                     .catch(err => res.status(400).send("주문실패"))
             })
+        })
     },
+    // stripe 결제 후에 실행 시키기 
 
 
     /**********   READ  ************/
 
-    getUser: (req, res) => {
-        user.findOne({})
-    }, // userInfo로 대체 가능
-
     getMyProduct: (req, res) => {
-        const userId = req.session.passport.user
+        const  session_userid = req.session.passport.user
         product.findAll({
-            where: { userId: userId },
+            where: { userId:  session_userid },
         })
             .then((data) => { res.status(201).json(data) })
     },
@@ -240,14 +243,26 @@ module.exports = {
     },
 
     getOrder: (req, res) => {
-        const userId = req.session.passport.user
+        const  session_userid = req.session.passport.user
         order.findAll({
-            where: { userId: userId },
+            where: { userId: session_userid },
             include: [{
                 model: user,
                 attributes: ['id', 'phone', 'email'], // user.hasmany(order) 관계에서 include가 되는지 확인 필요
             }]
         })
+    },
+
+    getSellerOrder:(req, res) =>{
+        const  session_userid = req.session.passport.user
+         order.findAll({
+             where : {sellerId: session_userid},
+             include: [{
+                model: product,
+            }]
+         })
+         .then((data)=>{res.status(200).json(data)})
+         .catch(err=>{res.status(400).send(err)})
     },
 
     getFollowList: (req, res) => {
@@ -256,19 +271,17 @@ module.exports = {
             where: { id: session_userid },
             include: [{
                 model: user,
-                as: 'friend',
-                attributes: ['id', 'nickname', 'full_name', 'email'],
+                as: 'follower',
+                attributes: ['id', 'nickname', 'fullname', 'email'],
                 through: {
-                    attributes: ['id', 'userId', 'friendId', 'block']
+                    attributes: ['id', 'userId', 'followId']
                 }
             }]
         })
             .then((data) => {
-                console.log(req.session)
                 res.status(200).json(data);
             })
             .catch((err) => {
-                console.log(req.session)
                 console.log("목록을 불러오는데에 에러:", err);
                 res.status(400).send("불러올 친구가 없나봅니다.human")
             })
@@ -321,8 +334,8 @@ module.exports = {
     /**********   UPDATE  ************/
 
     updateSeller: (req, res) => {
-        let session_userid = req.session.passport.user
-
+        const session_userid = req.session.passport.user
+        const { bankBrand , account }
         user.findOne({
             where: {
                 id: session_userid
@@ -330,10 +343,31 @@ module.exports = {
         })
             .then(data => {
                 if (data.is_seller) {
-                    data.update({ is_seller: false })
-                        .then(() => res.status(200).end())
+                    data.update({ 
+                        is_seller: 0,
+                        bank_brand: '',
+                        account: ''
+                    })
+                        .then(() => {
+                            product.destroy({
+                                where: {userId: session_userid}
+                            })
+                           .then(()=>{
+                              broadcast.destroy({
+                                where : { userId: session_userid }
+                              })
+                              .then(()=> follow.destroy({
+                                  where: { followerId :session_userid }
+                              }))
+                            })
+                            .then(()=> res.status(200).end())
+                        })
                 } else {
-                    data.update({ is_seller: true })
+                    data.update({ 
+                        is_seller: 1,
+                        bank_brand: bankBrand,
+                        account: account
+                     })
                         .then(() => res.status(200).end())
                 }
             })
@@ -341,18 +375,6 @@ module.exports = {
                 console.log(err)
                 res.status(400).end();
             })
-    },
-
-    updateIsSeller: (req, res) => {
-        const session_userid = req.session.passport.user
-        user.update({
-            is_seller: 1
-        },
-            {
-                where: { id: session_userid }
-            })
-            .then(() => res.status(201).send("당신은 이제 seller입니다."))
-            .catch(err => res.status(400).send(err))
     },
 
     updateProduct: (req, res) => {
@@ -431,4 +453,52 @@ module.exports = {
                 res.status(400).send(err)
             })
     },
+
+
+
+    /********** stripe ************/
+
+    dopayment: (req, res) => {
+        const  session_userid = req.session.passport.user
+        const tokenId = req.body.tokenInfo.tokenId
+         user.findOne({
+             where:{ id: session_userid }
+         })
+         .then((data) => {
+             if(!data.stripeId){
+                return stripe.customers.find({
+                    email: data.email,
+                    // source: token.card.cardId
+                })
+                .then((stCu)=>{
+                    console.log(stCu)
+                    data.update({stripeId: stCu.id})
+                    return stripe.customers.createSource(stCu.id,{
+                        source: tokenId
+                    })
+                    .then(()=>{
+                        return stripe.charges.create({
+                            amount: req.body.amount,
+                            currency: 'krw',
+                            customer: stCu.id,
+                            // source: stCu.default_source,
+                            description: 'Test payment',
+                        })
+                        .then(result => res.status(200).json(result))
+                        .catch(err => res.status(400).send(err))
+                    })
+                })
+             }else if(data.stripeId){
+                return stripe.charges.create({
+                    amount: Number(req.body.amount),
+                    currency: 'krw',
+                    customer: data.stripeId,
+                    // source: stCu.default_source,
+                    description: 'Test payment',
+                })
+                .then(result => res.status(200).json(result))
+                .catch(err => res.status(400).send(err))
+            }
+        })
+     }
 }
