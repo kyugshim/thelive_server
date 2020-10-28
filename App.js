@@ -25,7 +25,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: '1',
+  password: '[144leader!]',
   database: 'theLive'
 }
 
@@ -69,27 +69,9 @@ app.use(express.json());
 
 /********** stripe start************/
 
-const stripe = require('stripe')('sk_test_odmJuviAAUXBjd3EDTQDosgr');
 
-app.post('/api/doPayment/', (req, res) => {
-  return getDbUser(req.accessToken) // DB에서 user 가져오기 
-    .then(dbUser => {
-      findOrCreateStripeCustomer(dbUser, req.body.tokenId)
-    })
-    .then(stripeCustomer => {
-      updateDbUser(stripeCustomer.id) // Stripe customer ID 저장 
-      return stripe.charges.create({
-        amount: req.body.amount,
-        currency: 'usd',
-        customer: stripeCustomer.id,
-        source: stripeCustomer.default_source.id,
-        description: 'Test payment',
-      })
-    })
-    .then(result => res.status(200).json(result))
-});
-
-/********** stripe end************/
+app.post('/api/doPayment/',controller.dopayment);
+    
 
 
 /********** multer ************/

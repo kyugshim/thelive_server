@@ -16,11 +16,13 @@ module.exports = (sequelize, DataTypes) => {
   order.init({
     payment_status: DataTypes.STRING,
     order_quantity: DataTypes.INTEGER,
+    amount: DataTypes.INTEGER,
     address: DataTypes.STRING,
     addressDtail: DataTypes.STRING,
     productId: DataTypes.INTEGER,
-    userId : DataTypes.INTEGER
-    // customer_phone: DataTypes.INTEGER . include 로 user의 폰 가져오기
+    userId : DataTypes.INTEGER,
+    sellerId: DataTypes.INTEGER,
+    customer_phone: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'order',

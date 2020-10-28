@@ -35,6 +35,8 @@ module.exports = (sequelize, DataTypes) => {
     address: DataTypes.STRING,
     addressDetail: DataTypes.STRING,
     phone: DataTypes.STRING,
+    bank_brand: DataTypes.STRING,
+    account: DataTypes.STRING,
     profile_image: DataTypes.STRING,//multer 
     live_status: {
       type: DataTypes.BOOLEAN,

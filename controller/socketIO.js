@@ -57,7 +57,7 @@ module.exports = (io) => {
       const { title, body } = data;
       socket.handshake.session.save();
       console.log(socket.handshake.session)
-      let session_userid = socket.handshake.session.passport.user
+      const session_userid = socket.handshake.session.passport.user
       console.log(session_userid)
       broadcast
         .findOrCreate({
@@ -75,10 +75,9 @@ module.exports = (io) => {
 
     socket.on('begin-broadcast', (data) => {
       console.log('Begin-broadcast', data);
-      const session_userid = socket.handshake
-      console.log(socket.handshake)
+      const session_userid = socket.handshake.session.passport.user
       const { userName, title } = data;
-      if (!userName || !title) return;
+
       return broadcast.update(
         { status: 'ON' }, { where: { userId: session_userid } }
       ).then((foundRoom) => {
@@ -91,9 +90,9 @@ module.exports = (io) => {
 
     socket.on('done-broadcast', (data) => {
       console.log('Done-broadcast');
-      const session_userid = socket.handshake.session.data
+      const session_userid = socket.handshake.session.passport.user
       const { userName, title } = data;
-      const filePath = Utils.getMp4FilePath();
+
       if (!userName || !title) return;
       return broadcast.update(
         { status: "END" }, { where: { userId: session_userid } }
@@ -111,16 +110,14 @@ module.exports = (io) => {
     });
 
     /*** messages의 userName과 message를 세트로 어떻게 넣어줘야 하는가 ?? ***/
-    // socket.on('send-message', (data) => {
-    //   console.log('Send message');
-    //   const { title= '', message, userName } = data;
-    //   return broadcast.set
+      socket.on('send-message', (data) => {
+      console.log('Send message');
+      const  { nickName, message , title} = data;
+      const session_userid = socket.handshake.session.passport.user;
 
-    //       io.in(roomName).emit('send-message', result);
-    //     }
-    //   );
-    // });
-
+        const chat = [nickName, message]
+        io.in(title).emit('send-message', chat)});
+       }
     /*** 저장한 동영상을 어떻게 볼지***/
     // socket.on('replay', (data) => {
     //   console.log('Replay video');
@@ -141,6 +138,5 @@ module.exports = (io) => {
     //       }
     //       console.log(`stdout: ${stdout}`);
     //     });
-  })
 
-}
+  )}
