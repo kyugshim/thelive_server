@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     body: DataTypes.STRING,
     status: DataTypes.STRING,
     watching: DataTypes.INTEGER,
+    username: DataTypes.STRING,
     messages:  { 
       type: DataTypes.STRING, 
       get: function() {

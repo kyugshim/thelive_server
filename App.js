@@ -190,7 +190,7 @@ app.post("/addfollow", controller.createFollow);
 /**** UPDATE ****/
 app.post("/updateitem", controller.updateProduct);
 app.post("/signedit", controller.signEdit)
-app.post("/addseller", controller.updateIsSeller);
+app.post("/addseller", controller.updateSeller);
 
 /**** DELETE ****/
 app.post("/deletewishlist", controller.deleteWishList);

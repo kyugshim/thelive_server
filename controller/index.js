@@ -335,7 +335,7 @@ module.exports = {
 
     updateSeller: (req, res) => {
         const session_userid = req.session.passport.user
-        const { bankBrand , account }
+        const { bankBrand , account } = req.body
         user.findOne({
             where: {
                 id: session_userid
@@ -490,7 +490,7 @@ module.exports = {
                 })
              }else if(data.stripeId){
                 return stripe.charges.create({
-                    amount: Number(req.body.amount),
+                    amount: req.body.amount,
                     currency: 'krw',
                     customer: data.stripeId,
                     // source: stCu.default_source,

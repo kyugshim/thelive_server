@@ -40,15 +40,15 @@ module.exports = (io) => {
 
     socket.on('join-room', (data) => {
       console.log('Join room', data);
-      const { userName, title } = data;
-      if (!userName || !title) return;
+      const { nickName, title } = data;
+      if (!nickName || !title) return;
       socket.join(title);
     });
 
     socket.on('leave-room', (data) => {
       console.log('Leave room', data);
-      const { userName, title } = data;
-      if (!userName || !title) return;
+      const { nickName, title } = data;
+      if (!nickName || !title) return;
       socket.leave(title);
     });
 
@@ -76,7 +76,7 @@ module.exports = (io) => {
     socket.on('begin-broadcast', (data) => {
       console.log('Begin-broadcast', data);
       const session_userid = socket.handshake.session.passport.user
-      const { userName, title } = data;
+      const {  title } = data;
 
       return broadcast.update(
         { status: 'ON' }, { where: { userId: session_userid } }
@@ -91,9 +91,9 @@ module.exports = (io) => {
     socket.on('done-broadcast', (data) => {
       console.log('Done-broadcast');
       const session_userid = socket.handshake.session.passport.user
-      const { userName, title } = data;
+      const { nickName, title } = data;
 
-      if (!userName || !title) return;
+      if (!nickName || !title) return;
       return broadcast.update(
         { status: "END" }, { where: { userId: session_userid } }
       ).then((updatedData) => {
@@ -105,11 +105,11 @@ module.exports = (io) => {
 
     socket.on('send-heart', (data) => {
       console.log('Send heart');
-      const { title = '' } = data;
+      const { title } = data;
       io.in(title).emit('send-heart');
     });
 
-    /*** messages의 userName과 message를 세트로 어떻게 넣어줘야 하는가 ?? ***/
+    /*** messages의 nickName과 message를 set으로 저장이 가능한가?? ***/
       socket.on('send-message', (data) => {
       console.log('Send message');
       const  { nickName, message , title} = data;
