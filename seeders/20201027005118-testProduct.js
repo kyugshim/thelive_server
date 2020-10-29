@@ -19,8 +19,8 @@ module.exports = {
        price: 10000 + (i*1000),
        quantity: i,
        tag: "tag"+ i,
-       createdAt: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-       updatedAt: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+       createdAt: new Date(),
+       updatedAt: new Date()
      }
      datas.push(obj)
    }

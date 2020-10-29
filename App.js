@@ -25,7 +25,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: '',
+  password: null,
   database: 'theLive'
 }
 
@@ -175,7 +175,8 @@ app.get("/signout", controller.signOut);
 app.get("/myitem", controller.getMyProduct);
 app.get("/allitem", controller.getAllProduct);
 app.get("/myorder", controller.getOrder);
-app.get("/followlist", controller.getFollowList)
+app.get("/sellerorder", controller.getSellerOrder);
+app.get("/followlist", controller.getFollowList);
 app.get("/search", controller.searchProBro);
 
 // post 요청
@@ -190,12 +191,12 @@ app.post("/addfollow", controller.createFollow);
 /**** UPDATE ****/
 app.post("/updateitem", controller.updateProduct);
 app.post("/signedit", controller.signEdit)
-app.post("/addseller", controller.updateIsSeller);
+app.post("/addseller", controller.updateSeller);
 
 /**** DELETE ****/
-app.post("/deletewishlist", controller.deleteWishList);
 app.post("/deleteitem", controller.deleteProduct);
 app.post("/deleteorder", controller.deleteOrder);
+app.post("/deletewishlist", controller.deleteWishList);
 app.post("/deletebroadcast", controller.deleteBroadcast);
 
 app.use(bodyParser.json());

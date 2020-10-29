@@ -13,9 +13,9 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       product.hasMany(models.order)
       product.belongsToMany(models.user, {
-        through: 'whishlist'
+        through: 'wishlist'
       })
-      product.belongsToMany(models.user, {
+      product.belongsToMany(models.broadcast, {
         through: 'live_product'
       })
     }
@@ -28,6 +28,8 @@ module.exports = (sequelize, DataTypes) => {
     image: DataTypes.STRING,
     image2: DataTypes.STRING,
     image3: DataTypes.STRING,
+    image4: DataTypes.STRING,
+    image5: DataTypes.STRING,
     quantity: DataTypes.INTEGER,
     userId: DataTypes.INTEGER
   }, {
