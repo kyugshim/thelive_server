@@ -6,7 +6,7 @@ const sequelize = require('sequelize');
 const Op = sequelize.Op;
 
 module.exports = {
-    signUp: (req, res) => {
+    signUp: (req, res) => { // OK
         const { email, password, fullname, nickname, phone, address, addressDetail, profileImage } = req.body;
 
         user.findOrCreate({
@@ -32,7 +32,7 @@ module.exports = {
                 res.status(201).json(data);
             });
     },
-    userInfo: (req, res) => {
+    userInfo: (req, res) => { // OK
         console.log('userinfo api work', req.session)
         const session_userid = req.session.passport.user;
         if (session_userid) {
@@ -56,7 +56,7 @@ module.exports = {
         }
     },
 
-    signEdit: (req, res) => {
+    signEdit: (req, res) => { // testing...
         const { nickname, newPassword, address, addressDetail, phone, fullname } = req.body;
         const session_userid = req.session.passport.user
         const updateInfo = [nickname, newPassword, address, addressDetail, phone, fullname]
@@ -115,7 +115,7 @@ module.exports = {
             .catch(err => res.status(401).send(err))
     },
 
-    signOut: (req, res) => {
+    signOut: (req, res) => { // testing..
         const userSession = req.session;
         console.log(req.session)
         session.destroy({
@@ -139,7 +139,7 @@ module.exports = {
 
     /**********   CREATE   ************/
 
-    createFollow: (req, res) => {
+    createFollow: (req, res) => { // testing..
         const { sellerId } = req.body;
         const session_userid = req.session.passport.user
 
@@ -157,8 +157,8 @@ module.exports = {
     },
 
     createProduct: (req, res) => {
-        let userId = req.session.passport.user
-        let { title, body, price, tags, image, image2, image3, quantity } = req.body
+        const session_userid = req.session.passport.user
+        const { title, body, price, tags, image, image2, image3, quantity } = req.body
 
         product
             .create({
@@ -170,7 +170,7 @@ module.exports = {
                 image2: image2,
                 image3: image3,
                 quantity: quantity,
-                userId: userId,
+                userId: session_userid,
                 broadcast: null
             })
             .then(data => res.status(200).json(data))
@@ -181,11 +181,11 @@ module.exports = {
     },
 
     createWishList: (req, res) => {
-        let userId = req.session.passport.user
-        let { productId } = req.body
+        const session_userid = req.session.passport.user
+        const { productId } = req.body
 
         wishlist
-            .create({ userId: userId, productId: productId })
+            .create({ userId: session_userid, productId: productId })
             .then(data => res.status(200).json(data))
     },
 
@@ -203,7 +203,7 @@ module.exports = {
                     address: data.address,
                     addressDtail: data.addressDetail,
                     productId: productId,
-                    userId: userId,
+                    userId: session_userid,
                     sellerId: sellerId,
                     amount: amount,
                     customer_phone: data.phone
@@ -403,35 +403,35 @@ module.exports = {
     }, // 아직 불가능
 
     deleteProduct: (req, res) => {
-        const userId = req.session.passport.user
+        const session_userid = req.session.passport.user
         const { productId } = req.body;
         product.destroy({
             where: {
-                userId: userId,
+                userId: session_userid,
                 id: productId
             }
         }).then(() => res.status(200).send('삭제 성공'))
     },
 
     deleteOrder: (req, res) => {
-        const userId = req.session.passport.user
+        const session_userid = req.session.passport.user
         const { productId } = req.body;
         order.destroy({
             where: {
-                userId: userId,
+                userId: session_userid,
                 productId: productId
             }
         })
     },
 
     deleteWishList: (req, res) => {
-        const userId = req.session.passport.user
+        const session_userid = req.session.passport.user
         const { productId } = req.body
 
         wishlist
             .destroy({
                 where: {
-                    userId: userId,
+                    userId: session_userid,
                     productId: productId
                 }
             })
@@ -443,9 +443,9 @@ module.exports = {
     },
 
     deleteBroadcast: (req, res) => {
-        const userId = req.session.passport.user
+        const session_userid = req.session.passport.user
         broadcast.destroy({
-            where: { userId: userId }
+            where: { userId: session_userid }
         })
             .then(data => res.status(200).send('삭제 성공'))
             .catch(err => {
