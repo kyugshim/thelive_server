@@ -55,8 +55,6 @@ models.sequelize.sync()
   .then(() => console.log('동기화 성공'))
   .catch(e => console.log(e));
 
-require(`./controller/socketIO`)(io);
-
 
 app.use(session);
 
@@ -159,32 +157,32 @@ app.use(passport.session());
 
 /**********  API ************/
 
-app.post('/signin', auth.signin)
+app.post('/signin', auth.signin) // ok
 
 //PASSPORT - OAUTH2.0 - GOOGLE
-app.get('/auth/google', (req, res, next) => auth.oAuthGoogle(req, res, next))
-app.get('/auth/google/redirect', auth.googleRedirect)
+app.get('/auth/google', (req, res, next) => auth.oAuthGoogle(req, res, next)) //ok
+app.get('/auth/google/redirect', auth.googleRedirect) // x session 2개 담김 (1개는 passport o, 1개는 passport x)
 
 //PASSPORT - OAUTH2.0 - facebook
 app.get('/auth/facebook', (req, res, next) => auth.oAuthfacebook(req, res, next))
 app.get('auth/facebook/callback', auth.facebookCallback)
 
 // get 요청에 대한 응답 (API)
-app.get("/userInfo", controller.userInfo);
-app.get("/signout", controller.signOut);
+app.get("/userInfo", controller.userInfo); //ok
+app.get("/signout", controller.signOut);//ok
 app.get("/myitem", controller.getMyProduct);
-app.get("/allitem", controller.getAllProduct);
+app.get("/allitem", controller.getAllProduct);//ok
 app.get("/myorder", controller.getOrder);
 app.get("/sellerorder", controller.getSellerOrder);
 app.get("/followlist", controller.getFollowList);
-app.get("/search", controller.searchProBro);
+app.get("/search", controller.searchProBro);// ok (not include)
 
 // post 요청
 
 /**** CREATE ****/
-app.post("/signup", controller.signUp);
-app.post("/additem", controller.createProduct);
-app.post("/addwishlist", controller.createWishList);
+app.post("/signup", controller.signUp);// ok
+app.post("/additem", controller.createProduct);// ok
+app.post("/addwishlist", controller.createWishList);// ok
 app.post("/addorder", controller.createOrder);
 app.post("/addfollow", controller.createFollow);
 
