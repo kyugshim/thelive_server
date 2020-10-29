@@ -135,20 +135,6 @@ module.exports = {
             }
         })(req, res, next)
         
-        passport.serializeUser((user, done) => { // done의 인자로 받은 유저 정보를 통해 session에 유저의 id(DB상의 id)를 담아줍니다.
-            done(null, user.id)
-        })
-
-        passport.deserializeUser((userId, done) => {
-            console.log('is deserialize working?')
-            user.findOne({
-                where: {
-                    id: userId
-                }
-            }).then(user => {
-                done(null, user)
-            })
-        })
     },
 
     oAuthfacebook(req, res, next) {

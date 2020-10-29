@@ -17,8 +17,8 @@ module.exports = {
        title: "test" + i ,
        body: "testBody" + i,
        status: "ON",
-       createdAt: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-       updatedAt: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+       createdAt: new Date(),
+       updatedAt: new Date()
      }
      datas.push(obj)
    }

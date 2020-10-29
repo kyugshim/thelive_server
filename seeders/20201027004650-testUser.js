@@ -24,8 +24,8 @@ module.exports = {
        phone: "01000000000"+i,
        address: "NY"+i,
        addressDetail: "abc"+i,
-       createdAt: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-       updatedAt: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+       createdAt: new Date(),
+       updatedAt: new Date()
      }
      datas.push(obj)
    }
