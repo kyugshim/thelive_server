@@ -1,5 +1,5 @@
 const { user, order, product, broadcast, 
-        session, follow, wishlist, } = require('../models');
+        session, follow, wishlist, live_product} = require('../models');
 
 const stripe = require('stripe')('sk_test_odmJuviAAUXBjd3EDTQDosgr');
 const sequelize = require('sequelize');
@@ -190,7 +190,7 @@ module.exports = {
     },
 
     createOrder: (req, res) => {
-        const { quantity, productId, amount, sellerId} = req.body
+        const { quantity, productId, amount, sellerId } = req.body
         const  session_userid = req.session.passport.user
         user.findOne({
             where: { id:  session_userid }
@@ -224,6 +224,21 @@ module.exports = {
     },
     // stripe 결제 후에 실행 시키기 
 
+    createLiveProduct : (req, res) =>{
+        const {broadcastId, productId} = req.body
+
+        live_product.create({
+            broadcastId: broadcastId,
+            productId: productId
+        })
+        .then(()=>{
+            res.status(200).send("상품등록")
+        })
+        .catch(err => {
+            res.status(404).send(err)
+        })
+    },
+
 
     /**********   READ  ************/
 
@@ -247,10 +262,12 @@ module.exports = {
         order.findAll({
             where: { userId: session_userid },
             include: [{
-                model: user,
-                attributes: ['id', 'phone', 'email'], // user.hasmany(order) 관계에서 include가 되는지 확인 필요
+                model: product,
+                attributes: ['id', 'title', 'body'], // user.hasmany(order) 관계에서 include가 되는지 확인 필요
             }]
         })
+        .then((data)=>{res.status(200).json(data)})
+        .catch(err=>{res.status(400).send(err)})
     },
 
     getSellerOrder:(req, res) =>{
@@ -274,7 +291,7 @@ module.exports = {
                 as: 'follower',
                 attributes: ['id', 'nickname', 'fullname', 'email'],
                 through: {
-                    attributes: ['id', 'userId', 'followId']
+                    attributes: ['userId', 'followerId']
                 }
             }]
         })
@@ -377,24 +394,24 @@ module.exports = {
             })
     },
 
-    updateProduct: (req, res) => {
-        const { productId, title, body, price, image, image2, image3, tag, quantity } = req.body
-        product.update({
-            title: title,
-            body: body,
-            price: price,
-            image: image,
-            image2: image2,
-            image3: image3,
-            tag: tag,
-            quantity: quantity
-        },
-            {
-                where: { id: productId }
-            })
-            .then(() => res.status(201).send('수정성공'))
-            .catch((err) => res.status(401).send(err))
-    },
+    // updateProduct: (req, res) => {
+    //     const { productId, title, body, price, image, image2, image3, tag, quantity } = req.body
+    //     product.update({
+    //         title: title,
+    //         body: body,
+    //         price: price,
+    //         image: image,
+    //         image2: image2,
+    //         image3: image3,
+    //         tag: tag,
+    //         quantity: quantity
+    //     },
+    //         {
+    //             where: { id: productId }
+    //         })
+    //         .then(() => res.status(201).send('수정성공'))
+    //         .catch((err) => res.status(401).send(err))
+    // },
 
     /**********   DELETE   ************/
 
@@ -454,6 +471,154 @@ module.exports = {
             })
     },
 
+
+    /*********** multer **************/
+
+    postAvatarImage: async (req, res) => {
+        // req.file is the `avatar` file
+        // req.body will hold the text fields, if there were any
+        const {id} = req.body;
+  
+        try {
+          const avatar = req.file;
+          await user.uptdate(
+              {profile_image: "/profile/"+ req.file.filename},
+              {where: {id : id}})
+          // make sure file is available
+          if (!avatar) {
+            res.status(400).send('No file is selected.');
+          } else {
+            // send response
+            res.status(200).send( 'File is uploaded.');
+          }
+      
+        } catch (err) {
+          res.status(500).send(err);
+        }
+    },
+
+    getAvatarImage: (req,res) =>{
+       const session_userid = req.session.passport.user
+       user.findOne({
+           where: {id : session_userid}
+       })
+       .then((user)=>{
+           res.status(200).json(user.profile_image);
+       })
+    },
+
+
+
+   postProductImage: async (req, res) => {
+        // req.files is array of `photos` files
+        // req.body will contain the text fields, if there were any
+        console.log(req);
+        try {
+          const products = req.files;
+          const { productId } = req.body;
+          // make sure file is available
+          if (!products.length) {
+            res.status(400).send({
+              status: false,
+              data: 'No file is selected.'
+            });
+          } else {
+            // send response
+            let data = [];
+
+            for(let i=0 ; i< products.length; i++){
+                if(i === 0){
+                 await product.update(
+                     {image: "/products/"+ products[i].filename},
+                     {where: {id: productId}}
+                 )
+               }
+               else if (i === 1){
+                   await product.update(
+                       {image2: "/products/"+ products[i].filename},
+                       {where: {id: productId}}
+                   )
+               }
+               else if( i === 2){
+                   await product.update(
+                       {image3: "/products/"+ products[i].filename},
+                       {where: {id: productId}}
+                   )
+               }
+               else if( i === 3){
+                   await product.update(
+                       {image4: "/products/"+ products[i].filename},
+                       {where: {id: productId}}
+                   )
+               }
+               else if( i === 4){
+                   await product.update(
+                       {image5: "/products/"+ products[i].filename},
+                       {where: {id: productId}}
+                   )
+               }
+            }
+      
+            products.map(p => {
+              data.push({
+                originalname: p.originalname,
+                encoding: p.encoding,
+                mimetype: p.mime,
+                destination: p.destination,
+                filename: p.filename,
+                path: p.path,
+                size: p.size
+              })
+            });
+            res.status(200).send({
+              status: true,
+              message: 'File is uploaded.',
+              data: data
+            });
+          }
+      
+        } catch (err) {
+          console.log(err)
+          res.status(500).send(err);
+        }
+      },
+
+      getProductImage : (req, res) =>{
+          const { id } =  req.body
+
+          prodduct.findOne({
+              where: {id : id}
+          })
+          .then((product)=>{
+              let { image, image2, image3, image4, image5 } = product;
+              let imageArray = [];
+           
+              for(let i =0; i<5; i++){
+                  if(image){
+                    imageArray.push(image)
+                  }
+                  else if(image2){
+                    imageArray.push(image2)
+                  }
+                  else if(image3){
+                    imageArray.push(image3)
+                  }
+                  else if(image4){
+                    imageArray.push(image4)
+                  } 
+                  else if(image5){
+                    imageArray.push(image5)
+                  }
+              }
+
+              res.status(200).json(imageArray)
+
+          })
+          .catch((err)=>{
+              res.status(404).send(err)
+          })
+      },
+      
 
 
     /********** stripe ************/

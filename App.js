@@ -74,81 +74,10 @@ app.post('/api/doPayment/',controller.dopayment);
 
 /********** multer ************/
 //user avatar
-app.post('/profile', upload.single('avatar'), async (req, res) => {
-  // req.file is the `avatar` file
-  // req.body will hold the text fields, if there were any
-  console.log();
-  try {
-    const avatar = req.file;
-
-    // make sure file is available
-    if (!avatar) {
-      res.status(400).send({
-        status: false,
-        data: 'No file is selected.'
-      });
-    } else {
-      // send response
-      res.status(200).send({
-        status: true,
-        message: 'File is uploaded.',
-        data: {
-          originalname: avatar.originalname,
-          encoding: avatar.encoding,
-          mimetype: avatar.mimetype,
-          destination: avatar.destination,
-          filename: avatar.filename,
-          path: avatar.path,
-          size: avatar.size
-        }
-      });
-    }
-
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-app.post('/products', upload.array('products', 5), async (req, res) => {
-  // req.files is array of `photos` files
-  // req.body will contain the text fields, if there were any
-  console.log(req);
-  try {
-    const products = req.files;
-    // make sure file is available
-    if (!products.length) {
-      res.status(400).send({
-        status: false,
-        data: 'No file is selected.'
-      });
-    } else {
-      // send response
-      let data = [];
-
-      products.map(p => {
-        data.push({
-          originalname: p.originalname,
-          encoding: p.encoding,
-          mimetype: p.mime,
-          destination: p.destination,
-          filename: p.filename,
-          path: p.path,
-          size: p.size
-        })
-      });
-      res.status(200).send({
-        status: true,
-        message: 'File is uploaded.',
-        data: data
-      });
-    }
-
-  } catch (err) {
-    console.log(err)
-    res.status(500).send(err);
-  }
-});
-
+app.post('/profile', upload.single('avatar'), controller.postAvatarImage)
+app.post('/products', upload.array('products', 5), controller.postProductImage)
+app.get('/getprofile', controller.getAvatarImage);
+app.get('/getproducts', controller.getProductImage);
 
 //passport
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -170,26 +99,27 @@ app.get('auth/facebook/callback', auth.facebookCallback)
 // get 요청에 대한 응답 (API)
 app.get("/userInfo", controller.userInfo); //ok
 app.get("/signout", controller.signOut);//ok
-app.get("/myitem", controller.getMyProduct);
+app.get("/myitem", controller.getMyProduct);//ok
 app.get("/allitem", controller.getAllProduct);//ok
-app.get("/myorder", controller.getOrder);
-app.get("/sellerorder", controller.getSellerOrder);
-app.get("/followlist", controller.getFollowList);
+app.get("/myorder", controller.getOrder); // ok (product 정보포함)
+app.get("/sellerorder", controller.getSellerOrder);// ok
+app.get("/followlist", controller.getFollowList);// ok (반대 입장에서도 필요)
 app.get("/search", controller.searchProBro);// ok (not include)
 
 // post 요청
 
 /**** CREATE ****/
 app.post("/signup", controller.signUp);// ok
+app.post("/addfollow", controller.createFollow);// ok
 app.post("/additem", controller.createProduct);// ok
 app.post("/addwishlist", controller.createWishList);// ok
-app.post("/addorder", controller.createOrder);
-app.post("/addfollow", controller.createFollow);
+app.post("/addorder", controller.createOrder); // ok(order.addProduct(product) 가능)
 
 /**** UPDATE ****/
-app.post("/updateitem", controller.updateProduct);
-app.post("/signedit", controller.signEdit)
-app.post("/addseller", controller.updateSeller);
+app.post("/addseller", controller.updateSeller);// ok
+// app.post("/updateitem", controller.updateProduct); // 현재 필요한 기능 x 
+app.post("/signedit", controller.signEdit)// ok
+
 
 /**** DELETE ****/
 app.post("/deleteitem", controller.deleteProduct);
@@ -213,6 +143,8 @@ server.listen(5000, (err) => {
     console.log(`listening on port ${port}`)
   }
 })
+
+
 
 
 /*************       NodeMedia       *****************/
