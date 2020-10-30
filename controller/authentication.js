@@ -85,7 +85,7 @@ module.exports = {
                         if (result) { done(null, result) } // 이미 있는 email일 경우 해당 record를 done의 인자로 넘깁니다. 
                         else {
                             user
-                                .create({ email: profile.emails[0].value, full_name: profile.displayName })
+                                .create({ email: profile.emails[0].value, nickname: profile.displayName })
                                 .then(newUser => done(null, newUser)) //  DB에 없는 email인 경우 해당 email을 users 테이블에 레코드를 추가하고, 해당 레코드를 done의 인자로 넘깁니다.
                         }
                     })
@@ -130,7 +130,8 @@ module.exports = {
             else {
                 req.login(user, (err) => {
                     if (err) { return next(err) }
-                    res.status(200).end()
+                    console.log(`리다이렉트 유저`, user)
+                    res.status(200).redirect("http://codestates.com")
                 })
             }
         })(req, res, next)

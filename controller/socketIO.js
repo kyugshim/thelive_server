@@ -15,20 +15,6 @@ module.exports = (io) => {
 
   io.on("connection", function (socket) {
     console.log('New connection');
-    // soket 안에 session 을  넣는 코드.
-    // socket.on("login", function(userdata) {
-    // const user_session = socket.handshake.session.userdata
-    // socket.handshake.session.save();
-    // console.log(userdata)
-    // console.log(user_session)
-    // });
-
-    // socket.on("logout", function(userdata) {
-    //     if (socket.handshake.session.userdata) {
-    //         delete socket.handshake.session.userdata;
-    //         socket.handshake.session.save();
-    //     }
-    // });        
 
     socket.on('list-broadcast', () => {
       return broadcast
@@ -109,7 +95,7 @@ module.exports = (io) => {
       io.in(title).emit('send-heart');
     });
 
-    /*** messages의 nickName과 message를 set으로 저장이 가능한가?? ***/
+    /*** messages의 nickName과 message를  ***/
       socket.on('send-message', (data) => {
       console.log('Send message');
       const  { nickName, message , title} = data;
@@ -118,25 +104,5 @@ module.exports = (io) => {
         const chat = [nickName, message]
        return io.in(title).emit('send-message', chat)});
        }
-    /*** 저장한 동영상을 어떻게 볼지***/
-    // socket.on('replay', (data) => {
-    //   console.log('Replay video');
-    //   const { roomName, userName } = data;
-    //   Room.findOne({ roomName }).exec((error, result) => {
-    //     socket.emit('replay', result);
-    //     const { filePath } = result;
-    //     const commandExec = `ffmpeg -re -i ${filePath} -c:v libx264 -preset superfast -maxrate 3000k -bufsize 6000k -pix_fmt yuv420p -g 50 -c:a aac -b:a 160k -ac 2 -ar 44100 -f flv rtmp://localhost/live/${roomName}/replayFor${userName}`;
-    //     console.log('Command execute : ', commandExec);
-    //     exec(commandExec, (err, stdout, stderr) => {
-    //       if (error) {
-    //         console.log(`error: ${error.message}`);
-    //         return;
-    //       }
-    //       if (stderr) {
-    //         console.log(`stderr: ${stderr}`);
-    //         return;
-    //       }
-    //       console.log(`stdout: ${stdout}`);
-    //     });
 
   )}
