@@ -134,7 +134,7 @@ module.exports = {
                 })
             }
         })(req, res, next)
-        
+
     },
 
     oAuthfacebook(req, res, next) {

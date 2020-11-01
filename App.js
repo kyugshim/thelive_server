@@ -25,7 +25,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: null,
+  password: "null",
   database: 'theLive'
 }
 
@@ -69,8 +69,8 @@ app.use(express.json());
 /********** stripe start************/
 
 
-app.post('/api/doPayment/',controller.dopayment);
-    
+app.post('/api/doPayment/', controller.dopayment);
+
 
 
 /********** multer ************/
@@ -133,7 +133,7 @@ app.post("/deletebroadcast", controller.deleteBroadcast);
 app.use(bodyParser.json());
 app.set('socketio', io);
 app.set('server', server);
-app.use(express.static(`${__dirname}/public`));
+app.use(express.static(`uploads`));
 app.set('port', port);
 
 // app.listen(port, () => {
