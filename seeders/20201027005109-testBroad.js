@@ -14,9 +14,10 @@ module.exports = {
    let datas = [];
    for(let i = 0; i < 10; i++){
      let obj = {
-       title: "test" + i ,
+       title: "Live방송" + i ,
        body: "testBody" + i,
        status: "ON",
+       thumbnail: "/thumbnail/" + "test" + i +".png",
        createdAt: new Date(),
        updatedAt: new Date()
      }
