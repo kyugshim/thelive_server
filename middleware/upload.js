@@ -11,6 +11,8 @@ const storage = multer.diskStorage({
             destinationPath += 'profile/'
         } else if (file.fieldname === 'products') {
             destinationPath += 'products/'
+        }else if (file.fieldname === 'thumbnail') {
+            destinationPath += 'thumbnail/'
         }
         cb(null, destinationPath);
     },
@@ -48,6 +50,14 @@ const upload = multer({
             //     return callback(new Error('File size exceeds 15 MB'));
             // }
         }
+        if (file.fieldname === 'thumbnail') {
+            if (!['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
+                callback(new Error('Only Images are allowed'));
+            }
+            if (file.size < 110 * 110 * 2) {
+                return callback(new Error('File size exceeds 2 MB'));
+            }
+        }
         callback(null, true);
     },
     limits: function (req, file, callback) {
@@ -60,6 +70,12 @@ const upload = multer({
         if (file.fieldname === 'products') {
             if (file.fileSize < 1024 * 1024 * 15) {
                 return callback(new Error('File size exceeds 15 MB'));
+            }
+        }
+         console.log(file.fieldname);
+        if (file.fieldname === 'thumbnail') {
+            if (req.fileSize < 2) {
+                return callback(new Error('File size exceeds 2 MB'));
             }
         }
         callback(null, true);

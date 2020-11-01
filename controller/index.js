@@ -225,22 +225,36 @@ module.exports = {
     // stripe 결제 후에 실행 시키기 
 
     createLiveProduct : (req, res) =>{
-        const {broadcastId, productId} = req.body
+        const { title, productId} = req.body
 
-        live_product.create({
-            broadcastId: broadcastId,
-            productId: productId
-        })
-        .then(()=>{
-            res.status(200).send("상품등록")
-        })
-        .catch(err => {
-            res.status(404).send(err)
+        broadcast.findOne({where: {title : title}})
+        .then((data)=>{
+            live_product.create({
+                broadcastId: data.id,
+                productId: productId
+            })
+            .then(()=>{
+                res.status(200).send("상품등록")
+            })
+            .catch(err => {
+                res.status(404).send(err)
+            })
         })
     },
 
 
     /**********   READ  ************/
+
+    getBroadcast : (req, res) =>{
+        broadcast.findAll({
+            attributes: ['title', 'body', 'userId', 'thumbnail', 'status'],
+            include: [{
+                model: product
+            }]
+
+        })
+            .then(data => res.status(200).json(data));
+    },
 
     getMyProduct: (req, res) => {
         const  session_userid = req.session.passport.user
@@ -394,6 +408,23 @@ module.exports = {
             })
     },
 
+    sellerOrderStatus : (req,res) =>{
+        const { id , status} = req.body // order의 id status는 변화될 상태 string 값
+
+        order.update({
+            payment_status : status
+        },{
+            where: id
+        })
+        .then(()=>{
+            res.status(200).send("주문상태 변화")
+        })
+        .catch((err)=>{
+            console.log(err)
+            res.status(400).send(err)
+        })
+    },
+
     // updateProduct: (req, res) => {
     //     const { productId, title, body, price, image, image2, image3, tag, quantity } = req.body
     //     product.update({
@@ -474,14 +505,14 @@ module.exports = {
 
     /*********** multer **************/
 
-    postAvatarImage: async (req, res) => {
+    postAvatarImage:  async(req, res) => {
         // req.file is the `avatar` file
         // req.body will hold the text fields, if there were any
         const {id} = req.body;
   
         try {
           const avatar = req.file;
-          await user.uptdate(
+          await user.update(
               {profile_image: "/profile/"+ req.file.filename},
               {where: {id : id}})
           // make sure file is available
@@ -493,6 +524,7 @@ module.exports = {
           }
       
         } catch (err) {
+            console.log(err)
           res.status(500).send(err);
         }
     },
@@ -505,6 +537,30 @@ module.exports = {
        .then((user)=>{
            res.status(200).json(user.profile_image);
        })
+    },
+
+    postThumbnailImage: async (req, res) => {
+        // req.file is the `avatar` file
+        // req.body will hold the text fields, if there were any
+        const session_userid = req.session.passport.user
+        try {
+          const thumbnail = req.file;
+          console.log(thumbnail)
+          await broadcast.update(
+            {thumbnail: '/thumbnail/'+ req.file.filename},
+            {where: {userId : session_userid}})
+          // make sure file is available
+          if (!thumbnail) {
+            res.status(400).send('No file is selected.');
+          } else {
+            // send respon1
+            res.status(200).send( 'File is uploaded.');
+          }
+      
+        } catch (err) {
+            console.log(err)
+          res.status(500).send(err);
+        }
     },
 
 
@@ -625,13 +681,14 @@ module.exports = {
 
     dopayment: (req, res) => {
         const  session_userid = req.session.passport.user
-        const tokenId = req.body.tokenInfo.tokenId
+        // console.log(req.body)
+        const tokenId = req.body.tokenId
          user.findOne({
              where:{ id: session_userid }
          })
          .then((data) => {
              if(!data.stripeId){
-                return stripe.customers.find({
+                return stripe.customers.create({
                     email: data.email,
                     // source: token.card.cardId
                 })
@@ -643,7 +700,7 @@ module.exports = {
                     })
                     .then(()=>{
                         return stripe.charges.create({
-                            amount: req.body.amount,
+                            amount: 5000,
                             currency: 'krw',
                             customer: stCu.id,
                             // source: stCu.default_source,
@@ -653,9 +710,10 @@ module.exports = {
                         .catch(err => res.status(400).send(err))
                     })
                 })
-             }else if(data.stripeId){
+             }
+             else if(data.stripeId){
                 return stripe.charges.create({
-                    amount: req.body.amount,
+                    amount: 5000,
                     currency: 'krw',
                     customer: data.stripeId,
                     // source: stCu.default_source,

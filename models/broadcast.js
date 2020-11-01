@@ -11,30 +11,20 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      broadcast.belongsTo(models.user)
       
-      broadcast.hasMany(models.product)
-
       broadcast.belongsToMany(models.product, {
         through: 'live_product'
       })
     }
   };
   broadcast.init({
-    title: DataTypes.STRING,
+    title: {
+      type: DataTypes.STRING,
+      unique: true
+    },
     body: DataTypes.STRING,
     status: DataTypes.STRING,
-    watching: DataTypes.INTEGER,
-    username: DataTypes.STRING,
-    messages:  { 
-      type: DataTypes.STRING, 
-      get: function() {
-          return JSON.parse(this.getDataValue('messages'));
-      }, 
-      set: function(val) {
-          return this.setDataValue('messages', JSON.stringify(val));
-      }
-    },
+    thumbnail: DataTypes.STRING,
     countViewer: {
       type: DataTypes.INTEGER,
       default: 1,

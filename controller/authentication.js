@@ -5,6 +5,7 @@ const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 const sequelize = require("sequelize");
 const app = require('../App');
 const { user } = require(`../models/`)
+const { oAuthGoogle, googleConfig } = require(`../config/config`);
 
 
 module.exports = {
@@ -72,11 +73,7 @@ module.exports = {
 
     // OAuth를 이용한 Google 로그인
     oAuthGoogle(req, res, next) {
-        passport.use(new GoogleStrategy({ // google Strategy의 환경을 설정합니다.
-            clientID: '11196805892-5motqqsh6pqh0hrpvr19evjnjobjkcsr.apps.googleusercontent.com',
-            clientSecret: `YegIiPCfqppvMfUuQiZFv2z6`,
-            callbackURL: 'http://localhost:5000/auth/google/redirect' // Google Page에서 인증이 끝나면 서버의 "/auth/google/redirect"로 Get 요청을 보냅니다. 
-        },
+        passport.use(new GoogleStrategy(googleConfig,
             function (request, accessToken, refreshToken, profile, done) { // Google로부터 받은 profile의 email을 DB에서 조회합니다.
                 user.findOne({
                     where: { email: profile.emails[0].value }
@@ -109,6 +106,8 @@ module.exports = {
             })
         })
     },
+
+       
 
     // passport.authenticate('local', (err, user, info) => {
     //     if (err) { return next(err) }
