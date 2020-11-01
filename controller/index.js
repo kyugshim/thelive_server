@@ -159,7 +159,11 @@ module.exports = {
     createProduct: (req, res) => {
         const session_userid = req.session.passport.user
         const { title, body, price, tags, image, image2, image3, quantity } = req.body
-
+        
+        user.findOne({
+            where: {id: session_userid}
+        })
+        .then((data)=>{
         product
             .create({
                 title: title,
@@ -171,14 +175,17 @@ module.exports = {
                 image3: image3,
                 quantity: quantity,
                 userId: session_userid,
-                broadcast: null
+                seller_nickname: data.nickname
             })
-            .then(data => res.status(200).json(data))
+            .then((product) => 
+                res.status(200).json(product))
             .catch(err => {
                 console.log(err)
                 res.status(400).send(err)
             })
+        })
     },
+
 
     createWishList: (req, res) => {
         const session_userid = req.session.passport.user
@@ -258,11 +265,27 @@ module.exports = {
 
     getMyProduct: (req, res) => {
         const session_userid = req.session.passport.user
-
         product.findAll({
             where: { userId: session_userid },
         })
             .then((data) => { res.status(201).json(data) })
+            .catch(err => {
+                console.log(err)
+                res.status(404).send(err)
+            })
+    },
+
+    getSellerProduct: (req,res) =>{
+        const { userId } = req.body; // product
+
+        product.findAll({
+            where: {userId : userId}
+        })
+        .then((data) => { res.status(201).json(data) })
+        .catch(err => {
+            console.log(err)
+            res.status(404).send(err)
+        })
     },
 
     getAllProduct: (req, res) => {
@@ -278,7 +301,7 @@ module.exports = {
             where: { userId: session_userid },
             include: [{
                 model: product,
-                attributes: ['id', 'title', 'body'], // user.hasmany(order) 관계에서 include가 되는지 확인 필요
+                attributes: ['id', 'title', 'body'], 
             }]
         })
             .then((data) => { res.status(200).json(data) })
@@ -675,6 +698,8 @@ module.exports = {
                 res.status(404).send(err)
             })
     },
+
+
 
 
 

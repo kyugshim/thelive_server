@@ -97,12 +97,14 @@ app.get('auth/facebook/callback', auth.facebookCallback)
 app.get("/userInfo", controller.userInfo); //ok
 app.get("/signout", controller.signOut);//ok
 app.get("/myitem", controller.getMyProduct);//ok
+app.get("/selleritem", controller.getSellerProduct)
 app.get("/allitem", controller.getAllProduct);//ok
 app.get("/myorder", controller.getOrder); // ok (product 정보포함)
 app.get("/sellerorder", controller.getSellerOrder);// ok
 app.get("/followlist", controller.getFollowList);// ok (반대 입장에서도 필요)
 app.get("/search", controller.searchProBro);// ok (not include)
 app.get("/getBroadcast", controller.getBroadcast);
+
 
 
 // post 요청
