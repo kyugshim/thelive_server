@@ -23,7 +23,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: '',
+  password: '1',
   database: 'theLive'
 }
 
@@ -97,7 +97,7 @@ app.get('auth/facebook/callback', auth.facebookCallback)
 app.get("/userInfo", controller.userInfo); //ok
 app.get("/signout", controller.signOut);//ok
 app.get("/myitem", controller.getMyProduct);//ok
-app.get("/selleritem", controller.getSellerProduct)
+app.post("/selleritem", controller.getSellerProduct)
 app.get("/allitem", controller.getAllProduct);//ok
 app.get("/myorder", controller.getOrder); // ok (product 정보포함)
 app.get("/sellerorder", controller.getSellerOrder);// ok
