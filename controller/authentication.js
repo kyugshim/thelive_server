@@ -5,7 +5,7 @@ const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 const sequelize = require("sequelize");
 const app = require('../App');
 const { user } = require(`../models/`)
-const { oAuthGoogle, googleConfig } = require(`../config/config`)
+const { oAuthGoogle, googleConfig } = require(`../config/config`);
 
 
 module.exports = {
@@ -106,6 +106,8 @@ module.exports = {
             })
         })
     },
+
+       
 
     // passport.authenticate('local', (err, user, info) => {
     //     if (err) { return next(err) }

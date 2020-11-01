@@ -48,6 +48,7 @@ const { pathToFileURL } = require('url');
 const sharedsession = require('express-socket.io-session');
 
 const upload = require('./middleware/upload');
+
 const { config } = require('process');
 
 
@@ -73,9 +74,9 @@ app.post('/api/doPayment/', controller.dopayment);
 
 
 /********** multer ************/
-//user avatar
 app.post('/profile', upload.single('avatar'), controller.postAvatarImage)
 app.post('/products', upload.array('products', 5), controller.postProductImage)
+app.post('/addThumbnail', upload.single('thumbnail'), controller.postThumbnailImage)
 app.get('/getprofile', controller.getAvatarImage);
 app.get('/getproducts', controller.getProductImage);
 
@@ -105,7 +106,7 @@ app.get("/myorder", controller.getOrder); // ok (product 정보포함)
 app.get("/sellerorder", controller.getSellerOrder);// ok
 app.get("/followlist", controller.getFollowList);// ok (반대 입장에서도 필요)
 app.get("/search", controller.searchProBro);// ok (not include)
-
+app.get("/getBroadcast", controller.getBroadcast);
 // post 요청
 
 /**** CREATE ****/
@@ -114,11 +115,13 @@ app.post("/addfollow", controller.createFollow);// ok
 app.post("/additem", controller.createProduct);// ok
 app.post("/addwishlist", controller.createWishList);// ok
 app.post("/addorder", controller.createOrder); // ok(order.addProduct(product) 가능)
+app.post("/addLiveProduct", controller.createLiveProduct);
 
 /**** UPDATE ****/
 app.post("/addseller", controller.updateSeller);// ok
 // app.post("/updateitem", controller.updateProduct); // 현재 필요한 기능 x 
 app.post("/signedit", controller.signEdit)// ok
+app.post("/sellerOrderStatus", controller.sellerOrderStatus);
 
 
 /**** DELETE ****/
@@ -145,19 +148,10 @@ server.listen(5000, (err) => {
 })
 
 
-
-
 /*************       NodeMedia       *****************/
 const nms = new NodeMediaServer(nodeMediaServerConfig);
 nms.run();
 
-nms.on('getFilePath', (streamPath, oupath, mp4Filename) => {
-  console.log('---------------- get file path ---------------');
-  console.log(streamPath);
-  console.log(oupath);
-  console.log(mp4Filename);
-  utils.setMp4FilePath(`${oupath}/${mp4Filename}`);
-});
 
 nms.on('preConnect', (id, args) => {
   console.log('[NodeEvent on preConnect]', `id=${id} args=${JSON.stringify(args)}`);

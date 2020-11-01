@@ -46,17 +46,14 @@ module.exports = (io) => {
       const session_userid = socket.handshake.session.passport.user
       console.log(session_userid)
       broadcast
-        .findOrCreate({
-          where: {
-            userId: session_userid
-          },
-          defaults: {
+        .create({
             title: title,
             body: body,
-            status: 'PR'
-          }
+            status: 'PR',
+            userId: session_userid
         })
-        .then(createdData => emitListBroadcastInfo())
+        .then(createdData =>
+           emitListBroadcastInfo())
     });
 
     socket.on('begin-broadcast', (data) => {
