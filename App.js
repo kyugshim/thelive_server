@@ -5,11 +5,9 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 
-const path = require('path');
 const morgan = require('morgan');
 const models = require('./models/index')
-const http = require('http');
-const utils = require('./utils');
+
 
 const app = express();
 const server = require("http").createServer(app)
@@ -25,7 +23,7 @@ const options = {
   host: 'localhost',
   port: '3306',
   user: 'root',
-  password: "null",
+  password: '',
   database: 'theLive'
 }
 
@@ -43,13 +41,11 @@ const session = require("express-session")({
 const port = 5000;
 const auth = require('./controller/authentication');
 const controller = require('./controller/index');
-const { pathToFileURL } = require('url');
 
 const sharedsession = require('express-socket.io-session');
 
 const upload = require('./middleware/upload');
 
-const { config } = require('process');
 
 
 models.sequelize.sync()
@@ -101,12 +97,16 @@ app.get('auth/facebook/callback', auth.facebookCallback)
 app.get("/userInfo", controller.userInfo); //ok
 app.get("/signout", controller.signOut);//ok
 app.get("/myitem", controller.getMyProduct);//ok
+app.get("/selleritem", controller.getSellerProduct)
 app.get("/allitem", controller.getAllProduct);//ok
 app.get("/myorder", controller.getOrder); // ok (product 정보포함)
 app.get("/sellerorder", controller.getSellerOrder);// ok
 app.get("/followlist", controller.getFollowList);// ok (반대 입장에서도 필요)
 app.get("/search", controller.searchProBro);// ok (not include)
 app.get("/getBroadcast", controller.getBroadcast);
+
+
+
 // post 요청
 
 /**** CREATE ****/
@@ -136,9 +136,7 @@ app.set('server', server);
 app.use(express.static(`uploads`));
 app.set('port', port);
 
-// app.listen(port, () => {
-//   console.log(`app is the-live-server in PORT ${port}`);
-// });
+
 server.listen(5000, (err) => {
   if (err) {
     console.log(err)
