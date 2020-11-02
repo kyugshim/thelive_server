@@ -244,6 +244,7 @@ module.exports = {
                         res.status(200).send("상품등록")
                     })
                     .catch(err => {
+                        console.log(err)
                         res.status(404).send(err)
                     })
             })
@@ -433,11 +434,14 @@ module.exports = {
     sellerOrderStatus: (req, res) => {
         const { id, status } = req.body // order의 id status는 변화될 상태 string 값
 
-        order.update({
-            payment_status: status
-        }, {
-            where: id
-        })
+        order
+            .update({
+                payment_status: status
+            }, {
+                where: {
+                    id: id
+                }
+            })
             .then(() => {
                 res.status(200).send("주문상태 변화")
             })
